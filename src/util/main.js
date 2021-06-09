@@ -14,7 +14,13 @@ function throttler(fn,delay){
   }
 }
 
+function trimAllWhiteSpace(string){
+  return string.replace(/\s+/g,"")
+}
+
+
 export {
   doEventIfOwner,
-  throttler
+  throttler,
+  trimAllWhiteSpace
 }

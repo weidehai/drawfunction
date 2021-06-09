@@ -4,8 +4,7 @@ const TOKEN_TYPE={
   '+':'TT_PLUS',
   '-':'TT_SUB',
   '*':'TT_MUL',
-  '/':'TT_DIV',
-  '=':'TT_EQUAL'
+  '/':'TT_DIV'
 }
 
 

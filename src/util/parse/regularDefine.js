@@ -1,5 +1,6 @@
 
-const token = /(\d+\.?\d+)\s*([\+\-\*\/\=])/
+// todo 指数，三角函数，对数的解析
+const token = /^(\d+(\.(?=\d+))?\d*)\s*([\+\-\*\/]|$)/
 
 
 const whiteSpace = /\s/
