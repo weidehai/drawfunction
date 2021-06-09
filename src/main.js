@@ -1,8 +1,7 @@
 import Vue from 'vue'
-import App from './App.vue'
-
-Vue.config.productionTip = false
+import Index from './views/index'
+import './assets/css/base.css'
 
 new Vue({
-  render: h => h(App),
+  render: h => h(Index),
 }).$mount('#app')
