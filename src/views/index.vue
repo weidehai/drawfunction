@@ -12,7 +12,7 @@
           v-model="explicitFuction"
         />
         <input class="button" type="button" value="redraw" />
-        <input class="button" type="button" value="ctdraw" />
+        <input class="button" type="button" value="complie" @click="complie" />
       </div>
       <div polarEquation>
         <p class="tip">请输入一个极坐标方程</p>
@@ -31,6 +31,8 @@
 
 <script>
 import { doEventIfOwner, throttler } from "../util/main.js";
+const parse = require('../util/parse/syntaxer/syntaxer')
+const lexer = require("../util/parse/lexer/lexer");
 const MAX_ZOOM = 4;
 const MIN_SHRINK = 100;
 export default {
@@ -45,10 +47,13 @@ export default {
       gap: 10
     },
     polarEquation: "",
-    explicitFuction: ""
+    explicitFuction: "3+3^2"
+    //3+(-7)*(5+2)+ln(2+9-9)+10-20*0-3/22*(3--10)
   }),
   mounted() {
     this.init();
+    const token = lexer.lexer(this.explicitFuction)
+
   },
   methods: {
     init() {
@@ -136,6 +141,10 @@ export default {
       this.canvas.ctx.moveTo(x1, y1);
       this.canvas.ctx.lineTo(x2, y2);
       this.canvas.ctx.stroke();
+    },
+    complie:function(){
+      const token = lexer.lexer(this.explicitFuction)
+      parse(token)
     }
   }
 };
