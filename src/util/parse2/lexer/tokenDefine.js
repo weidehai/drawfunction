@@ -17,15 +17,4 @@ const TOKEN_TYPE = {
   TT_RPARNET: "rparent"
 };
 
-const operatorToBuiltin = {
-  TT_SIN: "Math.sin",
-  TT_COS: "Math.cos",
-  TT_TAN: "Math.tan",
-  TT_COT: "Math.sin/Math.cos",
-  TT_LN: "Math.log",
-  TT_LG: "Math.log(10)/Math.log()",
-  TT_LOG: "Math.log(10)/Math.log()",
-  TT_EXPONENT: "Math.pow()"
-};
-
 export default TOKEN_TYPE;

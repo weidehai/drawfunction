@@ -3,12 +3,11 @@ import { tokenParseError } from "./error";
 import createTokenMatcherChain from "./tokenMatcherChain";
 import TOKEN_TYPE from "./tokenDefine";
 
-function parser(string) {}
-
-function Token(type = null, value = null, next = null) {
+function Token(type = null, value = null, next = null, previous = null) {
   this.type = type;
   this.value = value;
   this.next = next;
+  this.previous = previous;
 }
 
 Token.prototype[Symbol.iterator] = function() {
@@ -28,6 +27,7 @@ function lexer(string) {
   const token = new Token();
   let tokenObj;
   let _token = token;
+  let first = true;
   string = trimAllWhiteSpace(string);
   const tokenMatcherChain = createTokenMatcherChain();
   do {
@@ -35,7 +35,12 @@ function lexer(string) {
     if (tokenObj) {
       string = string.replace(tokenObj.token, "");
       _token.next = new Token(TOKEN_TYPE[tokenObj.type], tokenObj.token);
-      _token = _token.next
+      if (first) {
+        (_token.next.previous = null), (first = false);
+      } else {
+        _token.next.previous = _token;
+      }
+      _token = _token.next;
       if (!string) break;
     } else {
       throw tokenParseError("illegal token matched in lexer");
