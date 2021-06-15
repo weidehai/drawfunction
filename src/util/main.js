@@ -18,9 +18,16 @@ function trimAllWhiteSpace(string){
   return string.replace(/\s+/g,"")
 }
 
+function isFunction(fn){
+  return typeof fn === 'function'
+}
+
+
+
 
 export {
   doEventIfOwner,
   throttler,
-  trimAllWhiteSpace
+  trimAllWhiteSpace,
+  isFunction
 }

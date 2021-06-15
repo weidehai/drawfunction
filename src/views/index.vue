@@ -2,14 +2,21 @@
   <div main>
     <div canvas>
       <div control>
-        <p class="lable">比例尺调节</p>
-        <slideAdjuster></slideAdjuster>
-        <p class="lable">开启动画</p>
-        <switcher></switcher>
+        <p class="lable">比例尺调节: 1:{{ canvas.zoom }}</p>
+        <slideAdjuster
+          :values="[20, 40, 60, 80, 100]"
+          @change="repaintScale"
+        ></slideAdjuster>
+        <p class="lable">动画速度: {{ canvas.speed }}秒</p>
+        <slideAdjuster
+          :values="[1, 2, 3, 4, 5]"
+          @change="setAnimationSpeed"
+        ></slideAdjuster>
+        <p class="lable">{{ enableAnimation ? "关闭" : "开启" }}动画</p>
+        <switcher @change="switchAnimation"></switcher>
       </div>
       <canvas></canvas>
     </div>
-    <div toolbar></div>
     <div stdin>
       <div explicitFuction>
         <p class="tip">请输入一个显函数</p>
@@ -22,10 +29,10 @@
         <input
           class="button"
           type="button"
-          value="redraw"
-          @click="drawFuncton"
+          value="绘制(擦除)"
+          @click="redraw"
         />
-        <input class="button" type="button" value="complie" @click="complie" />
+        <input class="button" type="button" value="绘制(不擦除)" />
       </div>
       <div polarEquation>
         <p class="tip">请输入一个极坐标方程</p>
@@ -35,25 +42,29 @@
           placeholder="请输入一个极坐标方程"
           v-model="polarEquation"
         />
-        <input class="button" type="button" value="redraw" />
-        <input class="button" type="button" value="ctdraw" />
+        <input
+          class="button"
+          type="button"
+          value="绘制(擦除)"
+          @click="redraw"
+        />
+        <input class="button" type="button" value="绘制(不擦除)" />
       </div>
     </div>
+    <woneDialog
+      :visiable.sync="showTips"
+      :message="tips.message"
+      :title="tips.title"
+    ></woneDialog>
   </div>
 </template>
 
 <script>
-import { doEventIfOwner, throttler } from "../util/main.js";
-import slideAdjuster from "../components/slideAdjuster.vue";
-import switcher from "../components/switcher.vue"
+import { doEventIfOwner, throttler, isFunction } from "../util/main.js";
 import expressionParser from "../util/parser/main";
 const MAX_ZOOM = 4;
 const MIN_SHRINK = 100;
 export default {
-  components: {
-    slideAdjuster,
-    switcher
-  },
   data: () => ({
     canvas: {
       instance: null,
@@ -66,10 +77,18 @@ export default {
       originPointX: 0,
       originPointY: 0,
       zoom: 50,
-      stopAction: false
+      stopAction: false,
+      speed: 1
     },
     polarEquation: "",
-    explicitFuction: "tanx"
+    explicitFuction: "tanx",
+    enableAnimation: false,
+    drawFunctonTask: null,
+    showTips: false,
+    tips: {
+      message: undefined,
+      title: undefined
+    }
   }),
   mounted() {
     this.init();
@@ -82,6 +101,7 @@ export default {
       this.canvas.instance.height = this.canvas.height;
       this.drawcoordinate();
       this.enableScale();
+      this.drawFuncton();
     },
     enableScale() {
       const self = this;
@@ -99,23 +119,17 @@ export default {
       }
       const handler = throttler((...rest) => {
         const [arg] = [...rest];
-        this.stopAction = true;
         if (isShrink(arg.event) && !isMinShrink()) {
           self.canvas.col += 2;
           self.canvas.row += 2;
           self.canvas.gap = self.canvas.width / self.canvas.col;
-          self.drawcoordinate();
         }
         if (isZoom(arg.event) && !isMaxZoom()) {
           self.canvas.col -= 2;
           self.canvas.row -= 2;
           self.canvas.gap = self.canvas.width / self.canvas.col;
-          self.drawcoordinate();
         }
-        setTimeout(() => {
-          this.stopAction = false;
-          this.drawFuncton();
-        }, 500);
+        self.ensureCancelrequestAnimation(self.drawcoordinate);
       }, 20);
 
       this.canvas.instance.addEventListener("mousewheel", function(e) {
@@ -207,13 +221,21 @@ export default {
         realy = 0,
         _realy = null,
         _realx = null,
-        self = this;
+        self = this,
+        frame = this.calculateFrame(step, 480),
+        pointCount = 0;
       doWork();
       function doWork() {
-        eval(expression);
+        try {
+          eval(expression);
+        } catch (e) {
+          self.tipsComeIn({ message: e.message, title: "错误提示" });
+          return
+        }
+        pointCount++;
         realx = self.canvas.originPointX + x * self.canvas.zoom;
         realy = self.canvas.originPointX - y * self.canvas.zoom;
-        if (self.isInlayout(realx, realy)) {
+        if (self.isInlayout(realx, realy) && !self.stopAction) {
           if (!_realx || !realy) {
             (_realx = realx), (_realy = realy);
           } else {
@@ -228,9 +250,17 @@ export default {
         }
         if (realx >= 10.5 && realx <= 490.5 && !self.stopAction) {
           x += step;
-          requestAnimationFrame(() => {
+          if (!self.enableAnimation) {
             doWork();
-          });
+          } else {
+            if (pointCount % frame === 0) {
+              requestAnimationFrame(() => {
+                doWork();
+              });
+            } else {
+              doWork();
+            }
+          }
         }
       }
     },
@@ -238,6 +268,40 @@ export default {
       for (let key of Object.keys(styleObj)) {
         this.canvas.ctx[key] = styleObj[key];
       }
+    },
+    switchAnimation(state) {
+      this.enableAnimation = state;
+    },
+    redraw() {
+      //this.tipsComeIn();
+      this.ensureCancelrequestAnimation(this.drawcoordinate);
+    },
+    ensureCancelrequestAnimation(fn) {
+      this.stopAction = true;
+      if (this.drawFunctonTask) clearTimeout(this.drawFunctonTask);
+      if (!isFunction(fn))
+        throw `ensureCancelrequestAnimation require a function argument,bu get a ${typeof fn}`;
+      fn.call(this);
+      this.drawFunctonTask = setTimeout(() => {
+        this.stopAction = false;
+        this.drawFuncton();
+      }, 200);
+    },
+    repaintScale(scale) {
+      this.canvas.zoom = scale;
+      this.redraw();
+    },
+    setAnimationSpeed(speed) {
+      this.canvas.speed = speed;
+    },
+    calculateFrame(step, distance) {
+      let frame = this.canvas.speed * 60;
+      let point = distance / (step * this.canvas.zoom);
+      return Math.ceil(point / frame);
+    },
+    tipsComeIn(tips) {
+      this.showTips = true;
+      if (tips) this.tips = tips;
     }
   }
 };
@@ -254,25 +318,18 @@ div[main] {
     width: 500px;
     height: 500px;
     position: relative;
-    div[control]{
+    div[control] {
       position: absolute;
       left: -15rem;
-      .lable{
-        margin-bottom: 0.5rem;
-        margin-top: 0.5rem;
-        &:first-of-type{
+      .lable {
+        margin-bottom: 0.6rem;
+        margin-top: 1.2rem;
+        user-select: none;
+        &:first-of-type {
           margin-top: 0;
         }
       }
     }
-  }
-  div[toolbar] {
-    width: 500px;
-    height: 20px;
-    position: relative;
-    top: -20px;
-    background-color: gray;
-    opacity: 0.2;
   }
   div[stdin] {
     width: 500px;
@@ -282,7 +339,7 @@ div[main] {
     .expression-text {
       border-radius: 2px;
       padding: 5px;
-      width: 60%;
+      width: 55%;
       border: 1px solid silver;
     }
     .button {
