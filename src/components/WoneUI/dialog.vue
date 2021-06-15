@@ -1,18 +1,16 @@
 <template>
-  <div
-    dialog
-    :class="['center', 'fixed', 'centerText', scale ? 'scale' : '']"
-    v-show="visiable"
-  >
-    <div title>
-      <p>{{ title }}</p>
-    </div>
-    <div message>
-      <p>{{ message }}</p>
-    </div>
-    <div button>
-      <woneButton text="取消" @click="close"></woneButton>
-      <woneButton text="确定" @click="close"></woneButton>
+  <div mask :class="[{lowIndex:!visiable},'fixed']"  v-show="visiable" @click.self="close">
+    <div dialog :class="['centerText',leave?'aScaleLeave':'aScaleEnter']">
+      <div title>
+        <p>{{ title }}</p>
+      </div>
+      <div message>
+        <p>{{ message }}</p>
+      </div>
+      <div button>
+        <woneButton text="取消" @click="close"></woneButton>
+        <woneButton text="确定" @click="close"></woneButton>
+      </div>
     </div>
   </div>
 </template>
@@ -21,7 +19,7 @@
 export default {
   name: "woneDialog",
   data: () => ({
-    scale:true
+    leave:false
   }),
   props: {
     message: {
@@ -32,17 +30,15 @@ export default {
       type: String,
       default: "对话框"
     },
-    visiable:Boolean
-  },
-  updated(){
-    setTimeout(()=>{
-      this.scale = false
-    },0)
+    visiable: Boolean
   },
   methods: {
-    close(){
-      this.scale = true
-      this.$emit('update:visiable',false)
+    close() {
+      this.leave = true
+      setTimeout(()=>{
+        this.$emit("update:visiable", false);
+        this.leave = false
+      },20)
     }
   }
 };
@@ -55,6 +51,15 @@ export default {
   justify-content: center;
   align-items: center;
 }
+div[mask]{
+  height: 100vh;
+  width: 100vw;
+  display: flex;
+  @include flexDoubleCenter;
+}
+.lowIndex{
+  z-index: -999;
+}
 div[dialog] {
   width: 350px;
   height: 200px;
@@ -64,7 +69,8 @@ div[dialog] {
   padding: 1.5rem;
   display: flex;
   flex-direction: column;
-  transition: all 0.2s;
+  animation-duration: 0.15s;
+  animation-fill-mode: forwards;
   div[title] {
     height: 20%;
     @include flexDoubleCenter;
@@ -79,20 +85,32 @@ div[dialog] {
     justify-content: flex-end;
   }
 }
-.center {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  transform-origin: -50% -50%;
-}
 .fixed {
   position: fixed;
 }
 .centerText {
   text-align: center;
 }
-.scale {
-  transform: scale(0.1);
+.aScaleEnter{
+  animation-name: aScaleEnter;
+}
+.aScaleLeave{
+  animation-name: aScaleLeave;
+}
+@keyframes aScaleEnter {
+  from {
+    transform: scale(0);
+  }
+  to {
+    transform: scale(1);
+  }
+}
+@keyframes aScaleLeave {
+  from {
+    transform: scale(1);
+  }
+  to {
+    transform: scale(0);
+  }
 }
 </style>

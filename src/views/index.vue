@@ -12,7 +12,7 @@
           :values="[1, 2, 3, 4, 5]"
           @change="setAnimationSpeed"
         ></slideAdjuster>
-        <p class="lable">{{ enableAnimation ? "关闭" : "开启" }}动画</p>
+        <p class="lable">动画: {{ enableAnimation ? "已开启" : "已关闭" }}</p>
         <switcher @change="switchAnimation"></switcher>
       </div>
       <canvas></canvas>
@@ -32,7 +32,7 @@
           value="绘制(擦除)"
           @click="redraw"
         />
-        <input class="button" type="button" value="绘制(不擦除)" />
+        <input class="button" type="button" value="绘制(不擦除)" @click="normalDraw"/>
       </div>
       <div polarEquation>
         <p class="tip">请输入一个极坐标方程</p>
@@ -48,7 +48,7 @@
           value="绘制(擦除)"
           @click="redraw"
         />
-        <input class="button" type="button" value="绘制(不擦除)" />
+        <input class="button" type="button" value="绘制(不擦除)" @click="normalDraw"/>
       </div>
     </div>
     <woneDialog
@@ -273,8 +273,10 @@ export default {
       this.enableAnimation = state;
     },
     redraw() {
-      //this.tipsComeIn();
       this.ensureCancelrequestAnimation(this.drawcoordinate);
+    },
+    normalDraw(){
+      this.drawFuncton()
     },
     ensureCancelrequestAnimation(fn) {
       this.stopAction = true;
