@@ -60,7 +60,7 @@
 </template>
 
 <script>
-import { doEventIfOwner, throttler, isFunction } from "../util/main.js";
+import { doEventIfOwner, throttler, isFunction,reliableFloatAdd } from "../util/main.js";
 import expressionParser from "../util/parser/main";
 const MAX_ZOOM = 4;
 const MIN_SHRINK = 100;
@@ -200,7 +200,6 @@ export default {
     },
     complie: function() {
       let parsedFunction = expressionParser(this.explicitFuction);
-      console.log(parsedFunction)
       return `y=${parsedFunction}`;
     },
     drawFuncton() {
@@ -229,7 +228,6 @@ export default {
       function doWork() {
         try {
           eval(expression);
-          (Math.pow((1-Math.pow(x,2)),(1/2)))
         } catch (e) {
           self.tipsComeIn({ message: e.message, title: "错误提示" });
           return
@@ -251,7 +249,7 @@ export default {
           (_realx = null), (_realx = null);
         }
         if (realx >= 10.5 && realx <= 490.5 && !self.stopAction) {
-          x += step;
+          x = reliableFloatAdd(x,step)
           if (!self.enableAnimation) {
             doWork();
           } else {
