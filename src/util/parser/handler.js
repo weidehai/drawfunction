@@ -40,6 +40,12 @@ const cotHanlder = function(results, tokenList) {
   results.push(expression);
 };
 
+const absHanlder = function(results){
+  results.unshift('Math.abs(')
+  results.push(')')
+  return results
+}
+
 const handler = {
   "^": exponentHanlder,
   ln: lnHanlder,
@@ -48,7 +54,8 @@ const handler = {
   sin: trigonometryHanlder,
   cos: trigonometryHanlder,
   tan: trigonometryHanlder,
-  cot: cotHanlder
+  cot: cotHanlder,
+  abs:absHanlder
 };
 
 export default handler;

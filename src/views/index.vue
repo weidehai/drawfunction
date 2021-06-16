@@ -101,7 +101,7 @@ export default {
       this.canvas.instance.height = this.canvas.height;
       this.drawcoordinate();
       this.enableScale();
-      this.drawFuncton();
+      //this.drawFuncton();
     },
     enableScale() {
       const self = this;
@@ -200,6 +200,7 @@ export default {
     },
     complie: function() {
       let parsedFunction = expressionParser(this.explicitFuction);
+      console.log(parsedFunction)
       return `y=${parsedFunction}`;
     },
     drawFuncton() {
@@ -228,6 +229,7 @@ export default {
       function doWork() {
         try {
           eval(expression);
+          (Math.pow((1-Math.pow(x,2)),(1/2)))
         } catch (e) {
           self.tipsComeIn({ message: e.message, title: "错误提示" });
           return
