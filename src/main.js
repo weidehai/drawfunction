@@ -1,6 +1,6 @@
 import Vue from 'vue'
 import Index from './views/index'
-import WoneUI from './components/index'
+import {WoneUI} from 'woneui'
 import './assets/css/base.css'
 
 

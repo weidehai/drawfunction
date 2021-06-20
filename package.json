@@ -10,7 +10,9 @@
   },
   "dependencies": {
     "core-js": "^3.6.5",
-    "vue": "^2.6.11"
+    "function-translate": "^1.0.0",
+    "vue": "^2.6.11",
+    "woneui": "^1.0.1"
   },
   "devDependencies": {
     "@babel/plugin-transform-modules-commonjs": "^7.14.5",

@@ -4713,6 +4713,11 @@ function-bind@^1.1.1:
   resolved "https://registry.yarnpkg.com/function-bind/-/function-bind-1.1.1.tgz#a56899d3ea3c9bab874bb9773b7c5ede92f4895d"
   integrity sha512-yIovAzMX49sF8Yl58fSCWJ5svSLuaibPxXQJFLmBObTuCr0Mf1KiPopGM9NiFjiYBCbfaa2Fh6breQ6ANVTI0A==
 
+function-translate@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/function-translate/-/function-translate-1.0.0.tgz#927187f65a6e91f63f05322e7ab8d337f0a3addb"
+  integrity sha512-tsNPT41RS5iMrthZBHkrulJibpmvgaWpAXcNWDKk/5SU+Y8nQypsd7H8+BI5Umv7HSFltdAuazJ5sPZhT8jAKw==
+
 functional-red-black-tree@^1.0.1:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/functional-red-black-tree/-/functional-red-black-tree-1.0.1.tgz#1b0ab3bd553b2a0d6399d29c0e3ea0b252078327"
@@ -9655,7 +9660,7 @@ vue-template-es2015-compiler@^1.9.0:
   resolved "https://registry.yarnpkg.com/vue-template-es2015-compiler/-/vue-template-es2015-compiler-1.9.1.tgz#1ee3bc9a16ecbf5118be334bb15f9c46f82f5825"
   integrity sha512-4gDntzrifFnCEvyoO8PqyJDmguXgVPxKiIxrBKjIowvL9l+N66196+72XVYR8BBf1Uv1Fgt3bGevJ+sEmxfZzw==
 
-vue@^2.6.11:
+vue@^2.6.11, vue@^2.6.14:
   version "2.6.14"
   resolved "https://registry.yarnpkg.com/vue/-/vue-2.6.14.tgz#e51aa5250250d569a3fbad3a8a5a687d6036e235"
   integrity sha512-x2284lgYvjOMj3Za7kqzRcUSxBboHqtgRE2zlos1qWaOye5yUmHn42LB1250NJBLRwEcdrB0JRwyPTEPhfQjiQ==
@@ -9916,6 +9921,13 @@ which@^2.0.1:
   integrity sha512-BLI3Tl1TW3Pvl70l3yq3Y64i+awpwXqsGBYWkkqMtnbXgrMD+yj7rhW0kuEDxzJaYXGjEW5ogapKNMEKNMjibA==
   dependencies:
     isexe "^2.0.0"
+
+woneui@1.0.1:
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/woneui/-/woneui-1.0.1.tgz#8d577735f98c4b6144dd06a1236428b158b7b9ff"
+  integrity sha512-DHGOoZImvW7l+sRF6jqN5Iwt3fxhA7lsHNYIzA6CxPlr6KUiZXBTjT/WDY2K4GOzqr4OhEISocWOeQSUoS33cA==
+  dependencies:
+    vue "^2.6.14"
 
 word-wrap@~1.2.3:
   version "1.2.3"
