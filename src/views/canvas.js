@@ -159,7 +159,7 @@ CoordinateCanvas.prototype.init = function() {
 CoordinateCanvas.prototype.refresh = function(){
   this.init()
 }
-CoordinateCanvas.prototype.enableScale = function() {
+CoordinateCanvas.prototype.enableScale = function(cb) {
   const self = this;
   function isShrink(e) {
     return e.wheelDelta < 0 ? true : false;
@@ -175,6 +175,8 @@ CoordinateCanvas.prototype.enableScale = function() {
   }
   const handler = throttler((...rest) => {
     const [arg] = [...rest];
+    if(isShrink(arg.event) && isMaxShrink()) return
+    if(isZoom(arg.event) && isMaxZoom()) return
     if (isShrink(arg.event) && !isMaxShrink()) {
       this.col += 2;
       this.row += 2;
@@ -183,8 +185,9 @@ CoordinateCanvas.prototype.enableScale = function() {
       this.col -= 2;
       this.row -= 2;
     }
+    console.log(this.col,this.row)
     this.init();
-    //self.ensureCancelrequestAnimation();
+    cb()
   }, 20);
 
   this.canvas.addEventListener("mousewheel", function(e) {

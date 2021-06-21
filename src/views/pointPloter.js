@@ -41,6 +41,17 @@ PonitPloter.prototype.setPolarRange = function(range) {
 PonitPloter.prototype.setCartesianRange = function(range) {
   this.cartesianRange = range;
 };
+PonitPloter.prototype.setZoom = function(zoom){
+  this.zoom = zoom
+}
+PonitPloter.prototype.setAnimationSpeed = function(speed){
+  this.animationSpeed = speed
+}
+PonitPloter.prototype.switchAnimation = function(state){
+  this.enableAnimation = state
+}
+
+
 PonitPloter.prototype.polar = function() {
   try {
     eval(this.expression);
@@ -74,8 +85,8 @@ PonitPloter.prototype.polar = function() {
     if (!this.enableAnimation || this.animationSpeed <= 0) {
       this.polar();
     } else {
-      if (!this.frame) this.frame = this.calculateFrame();
-      if (pointCount % this.frame === 0) {
+      if (!this.frame) this.frame = this.calculateFrame(360);
+      if (this.pointCount % this.frame === 0) {
         requestAnimationFrame(() => {
           this.polar();
         });
@@ -88,7 +99,6 @@ PonitPloter.prototype.polar = function() {
 PonitPloter.prototype.cartesian = function() {
   if (isNull(this.x)) {
     this.x = -this.canvas.originPointX / this.zoom;
-    console.log(this.x);
   }
   try {
     eval(this.expression);
@@ -110,7 +120,7 @@ PonitPloter.prototype.cartesian = function() {
   } else {
     (this._realx = null), (this._realy = null);
   }
-  if (!this.cartesianRange) this.cartesianRange = [0, this.canvas.width];
+  if (!this.cartesianRange) this.cartesianRange = [-1, this.canvas.width];
   if (
     this.realx >= this.cartesianRange[0] &&
     this.realx <= this.cartesianRange[1] &&
@@ -120,8 +130,8 @@ PonitPloter.prototype.cartesian = function() {
     if (!this.enableAnimation || this.animationSpeed <= 0) {
       this.cartesian();
     } else {
-      if (!this.frame) this.frame = this.calculateFrame();
-      if (pointCount % this.frame === 0) {
+      if (!this.frame) this.frame = this.calculateFrame(null,this.canvas.width,this.cartesianStep);
+      if (this.pointCount % this.frame === 0) {
         requestAnimationFrame(() => {
           this.cartesian();
         });
@@ -132,9 +142,9 @@ PonitPloter.prototype.cartesian = function() {
   }
 };
 PonitPloter.prototype.isInlayout = function(x, y) {
-  return x >= 0 && x <= this.canvas.width && y >= 0 && y <= this.canvas.height;
+  return x >= -1 && x <= this.canvas.width && y >= -1 && y <= this.canvas.height;
 };
-PonitPloter.prototype.calculateFrame = function() {
+PonitPloter.prototype.calculateFrame = function(point,distance,step) {
   let frame = this.animationSpeed * 60;
   point = point || distance / (step * this.zoom);
   return Math.ceil(point / frame);

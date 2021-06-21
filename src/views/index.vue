@@ -2,12 +2,12 @@
   <div main>
     <div canvas>
       <div control>
-        <p class="lable">比例尺调节: 1:</p>
+        <p class="lable">比例尺调节: 1:{{ zoom }}</p>
         <slideAdjuster
           :values="[20, 40, 60, 80, 100]"
           @change="repaintScale"
         ></slideAdjuster>
-        <p class="lable">动画速度: 秒</p>
+        <p class="lable">动画速度: {{animationSpeed}}秒</p>
         <slideAdjuster
           :values="[1, 2, 3, 4, 5]"
           @change="setAnimationSpeed"
@@ -77,12 +77,13 @@ import { PonitPloter } from "./pointPloter";
 export default {
   data: () => ({
     pointPloter: null,
-    coordinateCanvas:null,
-    expType: "",
+    coordinateCanvas: null,
+    expType: "cartesian",
+    zoom: 20,
     polarEquation: "sin(2x)",
     cartesianEquation: "tanx",
     enableAnimation: false,
-    drawFunctonTask: null,
+    animationSpeed:1,
     showTips: false,
     tips: {
       message: undefined,
@@ -95,8 +96,8 @@ export default {
   methods: {
     init() {
       this.coordinateCanvas = new CoordinateCanvas({
-        row: 50,
-        col: 50,
+        row: 76,
+        col: 76,
         canvas: document.querySelector("div[canvas] canvas"),
         pen: new Pen(
           document.querySelector("div[canvas] canvas").getContext("2d")
@@ -104,33 +105,36 @@ export default {
         width: 500,
         height: 500
       });
-      this.coordinateCanvas.enableScale();
+      this.coordinateCanvas.enableScale(this.redraw.bind(this));
       this.pointPloter = new PonitPloter({
-        canvas: this.coordinateCanvas
+        canvas: this.coordinateCanvas,
+        animationSpeed:this.animationSpeed
       });
     },
     complie: function() {
       let parsedFunction = expressionParser(this[`${this.expType}Equation`]);
-      console.log(parsedFunction);
       return `y=${parsedFunction}`;
     },
     drawFunctonImage() {
       let expression = this.complie();
-      this.pointPloter.setExp(expression)
-      this.pointPloter[this.expType]()
-    },
-    plotPoint(strategy, ...rest) {
-      strategy(...rest);
+      this.pointPloter.setExp(expression);
+      try{
+        this.pointPloter[this.expType]();
+      }catch(e){
+        console.log(e)
+        this.tipsComeIn({message:e.message,title:'error!'})
+      }
     },
     switchAnimation(state) {
+      this.pointPloter.switchAnimation(state)
       this.enableAnimation = state;
     },
     redraw(expType) {
       this.expType = expType || this.expType;
-      this.pointPloter.ensureStopAllPlot(()=>{
-        this.coordinateCanvas.refresh()
-        this.pointPloter.refresh()
-        this.drawFunctonImage()
+      this.pointPloter.ensureStopAllPlot(() => {
+        this.coordinateCanvas.refresh();
+        this.pointPloter.refresh();
+        this.drawFunctonImage();
       });
     },
     normalDraw(expType) {
@@ -138,11 +142,13 @@ export default {
       this.drawFunctonImage();
     },
     repaintScale(scale) {
-      //this.canvas.zoom = scale;
+      this.pointPloter.setZoom(scale);
+      this.zoom = scale;
       this.redraw();
     },
     setAnimationSpeed(speed) {
-      //this.canvas.speed = speed;
+      this.pointPloter.setAnimationSpeed(speed)
+      this.animationSpeed = speed
     },
     tipsComeIn(tips) {
       this.showTips = true;
