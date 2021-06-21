@@ -2,12 +2,12 @@
   <div main>
     <div canvas>
       <div control>
-        <p class="lable">比例尺调节: 1:{{ canvas.zoom }}</p>
+        <p class="lable">比例尺调节: 1:</p>
         <slideAdjuster
           :values="[20, 40, 60, 80, 100]"
           @change="repaintScale"
         ></slideAdjuster>
-        <p class="lable">动画速度: {{ canvas.speed }}秒</p>
+        <p class="lable">动画速度: 秒</p>
         <slideAdjuster
           :values="[1, 2, 3, 4, 5]"
           @change="setAnimationSpeed"
@@ -70,29 +70,15 @@
 </template>
 
 <script>
-import {
-  doEventIfOwner,
-  throttler,
-  isFunction,
-  reliableFloatAdd
-} from "../util/main.js";
 import { expressionParser } from "function-translate";
-import {pen} from './canvas'
-const MAX_ZOOM = 4;
-const MIN_SHRINK = 100;
+import { Pen, CoordinateCanvas } from "./canvas";
+import { PonitPloter } from "./pointPloter";
+
 export default {
   data: () => ({
-    canvas: {
-      col: 50,
-      row: 50,
-      gap: 10,
-      originPointX: 0,
-      originPointY: 0,
-      zoom: 50,
-      stopAction: false,
-      speed: 1
-    },
-    type: "",
+    pointPloter: null,
+    coordinateCanvas:null,
+    expType: "",
     polarEquation: "sin(2x)",
     cartesianEquation: "tanx",
     enableAnimation: false,
@@ -105,30 +91,33 @@ export default {
   }),
   mounted() {
     this.init();
-
   },
   methods: {
     init() {
-      pen.init(document.querySelector("div[canvas] canvas").getContext("2d"))
-      pen.setCanvas(document.querySelector("div[canvas] canvas"))
-      pen.setCanvasWidth(500)
-      pen.setCanvasHeight(500)
-      this.drawcoordinate();
-      this.enableScale();
-      this.drawFuncton();
+      this.coordinateCanvas = new CoordinateCanvas({
+        row: 50,
+        col: 50,
+        canvas: document.querySelector("div[canvas] canvas"),
+        pen: new Pen(
+          document.querySelector("div[canvas] canvas").getContext("2d")
+        ),
+        width: 500,
+        height: 500
+      });
+      this.coordinateCanvas.enableScale();
+      this.pointPloter = new PonitPloter({
+        canvas: this.coordinateCanvas
+      });
     },
     complie: function() {
-      let parsedFunction = expressionParser(this[`${this.type}Equation`]);
-      console.log(parsedFunction)
+      let parsedFunction = expressionParser(this[`${this.expType}Equation`]);
+      console.log(parsedFunction);
       return `y=${parsedFunction}`;
     },
-    drawFuncton() {
+    drawFunctonImage() {
       let expression = this.complie();
-      this.setPenStyle({
-        lineWidth: 1,
-        strokeStyle: "red"
-      });
-      this.plotPoint.call(null, this[this.type], expression);
+      this.pointPloter.setExp(expression)
+      this.pointPloter[this.expType]()
     },
     plotPoint(strategy, ...rest) {
       strategy(...rest);
@@ -136,20 +125,24 @@ export default {
     switchAnimation(state) {
       this.enableAnimation = state;
     },
-    redraw(type) {
-      this.type = type || this.type;
-      this.ensureCancelrequestAnimation(this.drawcoordinate);
+    redraw(expType) {
+      this.expType = expType || this.expType;
+      this.pointPloter.ensureStopAllPlot(()=>{
+        this.coordinateCanvas.refresh()
+        this.pointPloter.refresh()
+        this.drawFunctonImage()
+      });
     },
-    normalDraw(type) {
-      this.type = type;
-      this.drawFuncton();
+    normalDraw(expType) {
+      this.expType = expType || this.expType;
+      this.drawFunctonImage();
     },
     repaintScale(scale) {
-      this.canvas.zoom = scale;
+      //this.canvas.zoom = scale;
       this.redraw();
     },
     setAnimationSpeed(speed) {
-      this.canvas.speed = speed;
+      //this.canvas.speed = speed;
     },
     tipsComeIn(tips) {
       this.showTips = true;

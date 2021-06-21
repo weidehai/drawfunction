@@ -11,6 +11,7 @@
   "dependencies": {
     "core-js": "^3.6.5",
     "function-translate": "^1.0.0",
+    "ifuncs": "^1.0.0",
     "vue": "^2.6.11",
     "woneui": "^1.0.1"
   },
@@ -20,6 +21,7 @@
     "@vue/cli-plugin-eslint": "~4.5.0",
     "@vue/cli-service": "~4.5.0",
     "babel-eslint": "^10.1.0",
+    "babel-plugin-transform-remove-strict-mode": "^0.0.2",
     "eslint": "^6.7.2",
     "eslint-plugin-vue": "^6.2.2",
     "jest": "^27.0.4",
