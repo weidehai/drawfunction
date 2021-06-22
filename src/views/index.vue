@@ -7,7 +7,7 @@
           :values="[20, 40, 60, 80, 100]"
           @change="repaintScale"
         ></slideAdjuster>
-        <p class="lable">动画速度: {{animationSpeed}}秒</p>
+        <p class="lable">动画速度: {{ animationSpeed }}秒</p>
         <slideAdjuster
           :values="[1, 2, 3, 4, 5]"
           @change="setAnimationSpeed"
@@ -18,48 +18,65 @@
       <canvas></canvas>
     </div>
     <div stdin>
-      <div explicitFuction>
-        <p class="tip">请输入一个显函数</p>
-        <input
-          class="expression-text"
-          type="text"
-          placeholder="请输入一个显函数"
-          v-model="cartesianEquation"
-        />
-        <input
-          class="button"
-          type="button"
-          value="绘制(擦除)"
-          @click="redraw('cartesian')"
-        />
-        <input
-          class="button"
-          type="button"
-          value="绘制(不擦除)"
-          @click="normalDraw('cartesian')"
-        />
-      </div>
-      <div polarEquation>
-        <p class="tip">请输入一个极坐标方程</p>
-        <input
-          class="expression-text"
-          type="text"
-          placeholder="请输入一个极坐标方程"
-          v-model="polarEquation"
-        />
-        <input
-          class="button"
-          type="button"
-          value="绘制(擦除)"
-          @click="redraw('polar')"
-        />
-        <input
-          class="button"
-          type="button"
-          value="绘制(不擦除)"
-          @click="normalDraw('polar')"
-        />
-      </div>
+      <form action="">
+        <fieldset>
+          <legend>请输入一个显函数</legend>
+          表达式：<input
+            class="expression-text input-text"
+            type="text"
+            placeholder="请输入一个显函数"
+            v-model="cartesianEquation"
+          />
+          区间：<input
+            cartesianleft
+            type="number"
+            class="input-text range-text"
+            @change="setCartesianRange"
+          />
+          -
+          <input
+            cartesianright
+            type="number"
+            class="input-text range-text"
+            @change="setCartesianRange"
+          />
+          <input
+            class="button"
+            type="button"
+            value="绘制(擦除)"
+            @click="redraw('cartesian')"
+          />
+          <input
+            class="button"
+            type="button"
+            value="绘制(不擦除)"
+            @click="normalDraw('cartesian')"
+          />
+        </fieldset>
+        <fieldset>
+          <legend>请输入一个极坐标方程</legend>
+          表达式：<input
+            class="expression-text input-text"
+            type="text"
+            placeholder="请输入一个极坐标方程"
+            v-model="polarEquation"
+          />
+          区间：<input type="number" polarleft class="input-text range-text" @change="setPolarRange" min="0"/>deg -
+          <input type="number" polarright class="input-text range-text" @change="setPolarRange" min="0"/>deg
+          <input
+            class="button"
+            type="button"
+            value="绘制(擦除)"
+            @click="redraw('polar')"
+          />
+          <input
+            class="button"
+            type="button"
+            value="绘制(不擦除)"
+            @click="normalDraw('polar')"
+          />
+        </fieldset>
+      </form>
     </div>
     <woneDialog
       :visiable.sync="showTips"
@@ -80,10 +97,10 @@ export default {
     coordinateCanvas: null,
     expType: "cartesian",
     zoom: 20,
-    polarEquation: "sin(2x)",
+    polarEquation: "1+x",
     cartesianEquation: "tanx",
     enableAnimation: false,
-    animationSpeed:1,
+    animationSpeed: 1,
     showTips: false,
     tips: {
       message: undefined,
@@ -108,25 +125,25 @@ export default {
       this.coordinateCanvas.enableScale(this.redraw.bind(this));
       this.pointPloter = new PonitPloter({
         canvas: this.coordinateCanvas,
-        animationSpeed:this.animationSpeed
+        animationSpeed: this.animationSpeed
       });
     },
     complie: function() {
       let parsedFunction = expressionParser(this[`${this.expType}Equation`]);
+      console.log(parsedFunction)
       return `y=${parsedFunction}`;
     },
     drawFunctonImage() {
       let expression = this.complie();
       this.pointPloter.setExp(expression);
-      try{
+      try {
         this.pointPloter[this.expType]();
-      }catch(e){
-        console.log(e)
-        this.tipsComeIn({message:e.message,title:'error!'})
+      } catch (e) {
+        this.tipsComeIn({ message: e.message, title: "error!" });
       }
     },
     switchAnimation(state) {
-      this.pointPloter.switchAnimation(state)
+      this.pointPloter.switchAnimation(state);
       this.enableAnimation = state;
     },
     redraw(expType) {
@@ -147,12 +164,24 @@ export default {
       this.redraw();
     },
     setAnimationSpeed(speed) {
-      this.pointPloter.setAnimationSpeed(speed)
-      this.animationSpeed = speed
+      this.pointPloter.setAnimationSpeed(speed);
+      this.animationSpeed = speed;
     },
     tipsComeIn(tips) {
       this.showTips = true;
       if (tips) this.tips = tips;
+    },
+    setCartesianRange() {
+      let left = document.querySelector("input[cartesianleft]");
+      let right = document.querySelector("input[cartesianright]");
+      if (!left.value || !right.value) return;
+      this.pointPloter.setCartesianRange([left.value,right.value])
+    },
+    setPolarRange(){
+      let left = document.querySelector("input[polarleft]");
+      let right = document.querySelector("input[polarright]");
+      if (!left.value || !right.value) return;
+      this.pointPloter.setPolarRange([left.value,right.value])
     }
   }
 };
@@ -183,21 +212,30 @@ div[main] {
     }
   }
   div[stdin] {
-    width: 500px;
     .tip {
       margin: 10px 0;
     }
-    .expression-text {
+    .input-text {
       border-radius: 2px;
       padding: 5px;
-      width: 55%;
       border: 1px solid silver;
+    }
+    .expression-text {
+      width: 200px;
+    }
+    .range-text {
+      width: 4rem;
     }
     .button {
       border-radius: 2px;
       padding: 5px;
       border: 1px solid silver;
       margin-left: 0.5rem;
+    }
+    form {
+      fieldset {
+        margin-top: 2rem;
+      }
     }
   }
 }

@@ -4718,10 +4718,10 @@ function-bind@^1.1.1:
   resolved "https://registry.yarnpkg.com/function-bind/-/function-bind-1.1.1.tgz#a56899d3ea3c9bab874bb9773b7c5ede92f4895d"
   integrity sha512-yIovAzMX49sF8Yl58fSCWJ5svSLuaibPxXQJFLmBObTuCr0Mf1KiPopGM9NiFjiYBCbfaa2Fh6breQ6ANVTI0A==
 
-function-translate@^1.0.0:
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/function-translate/-/function-translate-1.0.0.tgz#927187f65a6e91f63f05322e7ab8d337f0a3addb"
-  integrity sha512-tsNPT41RS5iMrthZBHkrulJibpmvgaWpAXcNWDKk/5SU+Y8nQypsd7H8+BI5Umv7HSFltdAuazJ5sPZhT8jAKw==
+function-translate@^1.0.1:
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/function-translate/-/function-translate-1.0.1.tgz#ae62a3f362e3bc0a2845835defdc7ad3e427fd6d"
+  integrity sha512-NyBz5VNuQgPrmGTMo7Uvd3pAiT02oMSOJI5GsscatW51hWTqAKj1JR2WACGJ6TXshTK/sEhO0v6NrMU1+kZ8mQ==
 
 functional-red-black-tree@^1.0.1:
   version "1.0.1"
@@ -5239,10 +5239,10 @@ iferr@^0.1.5:
   resolved "https://registry.yarnpkg.com/iferr/-/iferr-0.1.5.tgz#c60eed69e6d8fdb6b3104a1fcbca1c192dc5b501"
   integrity sha1-xg7taebY/bazEEofy8ocGS3FtQE=
 
-ifuncs@^1.0.0:
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/ifuncs/-/ifuncs-1.0.0.tgz#aa73f6d1c236216baa9198f4d3b0e61e03cf7a69"
-  integrity sha512-qIVBnlFAlWkV/ZE4btLoX2AT6HqFXyKLXa9uAmV0UK2i85udTDi6c+Y2sk4lYyHmxcWYzA9adr6vv4wso2URSA==
+ifuncs@^1.0.1:
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/ifuncs/-/ifuncs-1.0.1.tgz#66c3b013d06db42ba9ea5ac6d22e746b35fa44ca"
+  integrity sha512-ADogG9O2wcnj3yniMUgdM9x/w5pyl8RzNa2DXhhNgnLsHHMtlVAtDRkpYHcmSbXn0MsXi3MXen87f0j9FJ9otw==
 
 ignore@^3.3.5:
   version "3.3.10"

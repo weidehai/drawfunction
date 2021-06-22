@@ -10,8 +10,8 @@
   },
   "dependencies": {
     "core-js": "^3.6.5",
-    "function-translate": "^1.0.0",
-    "ifuncs": "^1.0.0",
+    "function-translate": "^1.0.1",
+    "ifuncs": "^1.0.1",
     "vue": "^2.6.11",
     "woneui": "^1.0.1"
   },
