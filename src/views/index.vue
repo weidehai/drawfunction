@@ -1,24 +1,31 @@
 <template>
   <div main>
     <div canvas>
-      <div control>
-        <p class="lable">比例尺调节: 1:{{ zoom }}</p>
-        <slideAdjuster
-          :values="[20, 40, 60, 80, 100]"
-          @change="repaintScale"
-        ></slideAdjuster>
-        <p class="lable">动画速度: {{ animationSpeed }}秒</p>
-        <slideAdjuster
-          :values="[1, 2, 3, 4, 5]"
-          @change="setAnimationSpeed"
-        ></slideAdjuster>
-        <p class="lable">动画: {{ enableAnimation ? "已开启" : "已关闭" }}</p>
-        <switcher @change="switchAnimation"></switcher>
-      </div>
       <canvas></canvas>
     </div>
     <div stdin>
-      <form action="">
+      <form style="margin-right:1rem">
+        <fieldset>
+          <legend>控制面板</legend>
+          <div control>
+            <p class="lable">比例尺调节: 1:{{ zoom }}</p>
+            <slideAdjuster
+              :values="[20, 40, 60, 80, 100]"
+              @change="repaintScale"
+            ></slideAdjuster>
+            <p class="lable">动画速度: {{ animationSpeed }}秒</p>
+            <slideAdjuster
+              :values="[1, 2, 3, 4, 5]"
+              @change="setAnimationSpeed"
+            ></slideAdjuster>
+            <p class="lable">
+              动画: {{ enableAnimation ? "已开启" : "已关闭" }}
+            </p>
+            <switcher @change="switchAnimation"></switcher>
+          </div>
+        </fieldset>
+      </form>
+      <form>
         <fieldset>
           <legend>请输入一个显函数</legend>
           表达式：<input
@@ -53,7 +60,7 @@
             @click="normalDraw('cartesian')"
           />
         </fieldset>
-        <fieldset>
+        <fieldset style="margin-top:2rem">
           <legend>请输入一个极坐标方程</legend>
           表达式：<input
             class="expression-text input-text"
@@ -61,8 +68,20 @@
             placeholder="请输入一个极坐标方程"
             v-model="polarEquation"
           />
-          区间：<input type="number" polarleft class="input-text range-text" @change="setPolarRange" min="0"/>deg -
-          <input type="number" polarright class="input-text range-text" @change="setPolarRange" min="0"/>deg
+          区间：<input
+            type="number"
+            polarleft
+            class="input-text range-text"
+            @change="setPolarRange"
+            min="0"
+          />deg -
+          <input
+            type="number"
+            polarright
+            class="input-text range-text"
+            @change="setPolarRange"
+            min="0"
+          />deg
           <input
             class="button"
             type="button"
@@ -119,10 +138,11 @@ export default {
         pen: new Pen(
           document.querySelector("div[canvas] canvas").getContext("2d")
         ),
-        width: 500,
+        width: 800,
         height: 500
       });
       this.coordinateCanvas.enableScale(this.redraw.bind(this));
+      this.coordinateCanvas.watchMouse(this.redraw.bind(this));
       this.pointPloter = new PonitPloter({
         canvas: this.coordinateCanvas,
         animationSpeed: this.animationSpeed
@@ -130,7 +150,6 @@ export default {
     },
     complie: function() {
       let parsedFunction = expressionParser(this[`${this.expType}Equation`]);
-      console.log(parsedFunction)
       return `y=${parsedFunction}`;
     },
     drawFunctonImage() {
@@ -175,13 +194,13 @@ export default {
       let left = document.querySelector("input[cartesianleft]");
       let right = document.querySelector("input[cartesianright]");
       if (!left.value || !right.value) return;
-      this.pointPloter.setCartesianRange([left.value,right.value])
+      this.pointPloter.setCartesianRange([left.value, right.value]);
     },
-    setPolarRange(){
+    setPolarRange() {
       let left = document.querySelector("input[polarleft]");
       let right = document.querySelector("input[polarright]");
       if (!left.value || !right.value) return;
-      this.pointPloter.setPolarRange([left.value,right.value])
+      this.pointPloter.setPolarRange([left.value, right.value]);
     }
   }
 };
@@ -194,24 +213,48 @@ div[main] {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  div[canvas] {
-    width: 500px;
-    height: 500px;
-    position: relative;
-    div[control] {
-      position: absolute;
-      left: -15rem;
-      .lable {
-        margin-bottom: 0.6rem;
-        margin-top: 1.2rem;
-        user-select: none;
-        &:first-of-type {
-          margin-top: 0;
-        }
+  div[top] {
+    display: flex;
+  }
+  div[control] {
+    margin-right: 2rem;
+    .lable {
+      margin-bottom: 0.6rem;
+      margin-top: 1.2rem;
+      user-select: none;
+      &:first-of-type {
+        margin-top: 0;
       }
     }
   }
+  div[canvas] {
+    width: 800px;
+    height: 500px;
+    position: relative;
+    background-color: white;
+    &::-webkit-scrollbar-thumb {
+      border-radius: 5px;
+      background: #909090;
+    }
+    &::-webkit-scrollbar-track {
+      border-radius: 20px;
+    }
+    &::-webkit-scrollbar {
+      height: 8px;
+      width: 8px;
+      background-color: #9e9e9ea6;
+    }
+    &::-webkit-scrollbar-thumb:hover {
+      background: #555252;
+    }
+    &::-webkit-scrollbar-corner {
+      background-color: #9e9e9ea6;
+      border-end-end-radius: 50%;
+    }
+  }
   div[stdin] {
+    display: flex;
+    margin-top: 2rem;
     .tip {
       margin: 10px 0;
     }
@@ -231,11 +274,6 @@ div[main] {
       padding: 5px;
       border: 1px solid silver;
       margin-left: 0.5rem;
-    }
-    form {
-      fieldset {
-        margin-top: 2rem;
-      }
     }
   }
 }

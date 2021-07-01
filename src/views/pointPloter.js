@@ -101,7 +101,6 @@ PonitPloter.prototype.cartesian = function() {
   } catch (e) {
     throw e;
   }
-  debugger
   this.pointCount++;
   this.realx = this.canvas.originPointX + this.x * this.zoom;
   this.realy = this.canvas.originPointY - this.y * this.zoom;
@@ -139,7 +138,7 @@ PonitPloter.prototype.cartesian = function() {
   }
 };
 PonitPloter.prototype.isInlayout = function(x, y) {
-  return x >= 0 && x <= this.canvas.width && y >= 0 && y <= this.canvas.height;
+  return x >= 0 && x <= this.canvas.width && y >= -2000 && y <= this.canvas.height;
 };
 PonitPloter.prototype.calculateFrame = function(point, distance, step) {
   let frame = this.animationSpeed * 60;
