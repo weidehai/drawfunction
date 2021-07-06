@@ -107,7 +107,8 @@
 
 <script>
 import { expressionParser } from "function-translate";
-import { Pen, CoordinateCanvas } from "./canvas";
+import { CoordinateCanvas } from "./canvas/coordinateCanvas";
+import {Pen} from './canvas/pen'
 import { PonitPloter } from "./pointPloter";
 
 export default {
@@ -132,8 +133,6 @@ export default {
   methods: {
     init() {
       this.coordinateCanvas = new CoordinateCanvas({
-        row: 76,
-        col: 76,
         canvas: document.querySelector("div[canvas] canvas"),
         pen: new Pen(
           document.querySelector("div[canvas] canvas").getContext("2d")
@@ -141,8 +140,8 @@ export default {
         width: 800,
         height: 500
       });
-      this.coordinateCanvas.enableScale(this.redraw.bind(this));
-      this.coordinateCanvas.watchMouse(this.redraw.bind(this));
+      //this.coordinateCanvas.enableScale(this.redraw.bind(this));
+      this.coordinateCanvas.enableDrag(this.redraw.bind(this));
       this.pointPloter = new PonitPloter({
         canvas: this.coordinateCanvas,
         animationSpeed: this.animationSpeed
@@ -153,6 +152,7 @@ export default {
       return `y=${parsedFunction}`;
     },
     drawFunctonImage() {
+      return
       let expression = this.complie();
       this.pointPloter.setExp(expression);
       try {
@@ -230,6 +230,7 @@ div[main] {
   div[canvas] {
     width: 800px;
     height: 500px;
+    overflow: hidden;
     position: relative;
     background-color: white;
     &::-webkit-scrollbar-thumb {
