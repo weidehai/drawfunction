@@ -1,101 +1,107 @@
 <template>
   <div main>
     <div canvas>
+      <button menus @click="showMenus">
+        <font-awesome-icon icon="bars" />
+      </button>
       <canvas></canvas>
     </div>
-    <div stdin>
-      <form style="margin-right:1rem">
-        <fieldset>
-          <legend>控制面板</legend>
-          <div control>
-            <p class="lable">比例尺调节: 1:{{ zoom }}</p>
-            <slideAdjuster
-              :values="[20, 40, 60, 80, 100]"
-              @change="repaintScale"
-            ></slideAdjuster>
-            <p class="lable">动画速度: {{ animationSpeed }}秒</p>
-            <slideAdjuster
-              :values="[1, 2, 3, 4, 5]"
-              @change="setAnimationSpeed"
-            ></slideAdjuster>
-            <p class="lable">
-              动画: {{ enableAnimation ? "已开启" : "已关闭" }}
-            </p>
-            <switcher @change="switchAnimation"></switcher>
-          </div>
-        </fieldset>
-      </form>
-      <form>
-        <fieldset>
-          <legend>请输入一个显函数</legend>
-          表达式：<input
-            class="expression-text input-text"
-            type="text"
-            placeholder="请输入一个显函数"
-            v-model="cartesianEquation"
-          />
-          区间：<input
-            cartesianleft
-            type="number"
-            class="input-text range-text"
-            @change="setCartesianRange"
-          />
-          -
-          <input
-            cartesianright
-            type="number"
-            class="input-text range-text"
-            @change="setCartesianRange"
-          />
-          <input
-            class="button"
-            type="button"
-            value="绘制(擦除)"
-            @click="redraw('cartesian')"
-          />
-          <input
-            class="button"
-            type="button"
-            value="绘制(不擦除)"
-            @click="normalDraw('cartesian')"
-          />
-        </fieldset>
-        <fieldset style="margin-top:2rem">
-          <legend>请输入一个极坐标方程</legend>
-          表达式：<input
-            class="expression-text input-text"
-            type="text"
-            placeholder="请输入一个极坐标方程"
-            v-model="polarEquation"
-          />
-          区间：<input
-            type="number"
-            polarleft
-            class="input-text range-text"
-            @change="setPolarRange"
-            min="0"
-          />deg -
-          <input
-            type="number"
-            polarright
-            class="input-text range-text"
-            @change="setPolarRange"
-            min="0"
-          />deg
-          <input
-            class="button"
-            type="button"
-            value="绘制(擦除)"
-            @click="redraw('polar')"
-          />
-          <input
-            class="button"
-            type="button"
-            value="绘制(不擦除)"
-            @click="normalDraw('polar')"
-          />
-        </fieldset>
-      </form>
+    <div panel>
+      <div mask v-if="menusShow" @click.stop.prevent.self="hideMenus"></div>
+      <div control :class="[menusShow?'show':'hide']">
+        <form>
+          <fieldset>
+            <legend>控制面板</legend>
+            <div>
+              <p class="lable">比例尺调节: 1:{{ zoom }}</p>
+              <slideAdjuster
+                :values="[20, 40, 60, 80, 100]"
+                @change="repaintScale"
+              ></slideAdjuster>
+              <p class="lable">动画速度: {{ animationSpeed }}秒</p>
+              <slideAdjuster
+                :values="[1, 2, 3, 4, 5]"
+                @change="setAnimationSpeed"
+              ></slideAdjuster>
+              <p class="lable">
+                动画: {{ enableAnimation ? "已开启" : "已关闭" }}
+              </p>
+              <switcher @change="switchAnimation"></switcher>
+            </div>
+          </fieldset>
+        </form>
+        <form>
+          <fieldset>
+            <legend>请输入一个显函数</legend>
+            表达式：<input
+              class="expression-text input-text"
+              type="text"
+              placeholder="请输入一个显函数"
+              v-model="cartesianEquation"
+            />
+            区间：<input
+              cartesianleft
+              type="number"
+              class="input-text range-text"
+              @change="setCartesianRange"
+            />
+            -
+            <input
+              cartesianright
+              type="number"
+              class="input-text range-text"
+              @change="setCartesianRange"
+            />
+            <input
+              class="button"
+              type="button"
+              value="绘制(擦除)"
+              @click="redraw('cartesian')"
+            />
+            <input
+              class="button"
+              type="button"
+              value="绘制(不擦除)"
+              @click="normalDraw('cartesian')"
+            />
+          </fieldset>
+          <fieldset>
+            <legend>请输入一个极坐标方程</legend>
+            表达式：<input
+              class="expression-text input-text"
+              type="text"
+              placeholder="请输入一个极坐标方程"
+              v-model="polarEquation"
+            />
+            区间：<input
+              type="number"
+              polarleft
+              class="input-text range-text"
+              @change="setPolarRange"
+              min="0"
+            />deg -
+            <input
+              type="number"
+              polarright
+              class="input-text range-text"
+              @change="setPolarRange"
+              min="0"
+            />deg
+            <input
+              class="button"
+              type="button"
+              value="绘制(擦除)"
+              @click="redraw('polar')"
+            />
+            <input
+              class="button"
+              type="button"
+              value="绘制(不擦除)"
+              @click="normalDraw('polar')"
+            />
+          </fieldset>
+        </form>
+      </div>
     </div>
     <woneDialog
       :visiable.sync="showTips"
@@ -108,15 +114,16 @@
 <script>
 import { expressionParser } from "function-translate";
 import { CoordinateCanvas } from "./canvas/coordinateCanvas";
-import {Pen} from './canvas/pen'
+import { Pen } from "./canvas/pen";
 import { PonitPloter } from "./pointPloter";
 
 export default {
   data: () => ({
+    menusShow: false,
     pointPloter: null,
     coordinateCanvas: null,
     expType: "cartesian",
-    zoom: 20,
+    zoom: 50,
     polarEquation: "1+x",
     cartesianEquation: "tanx",
     enableAnimation: false,
@@ -131,14 +138,21 @@ export default {
     this.init();
   },
   methods: {
+    hideMenus() {
+      this.menusShow = false;
+    },
+    showMenus() {
+      this.menusShow = true;
+    },
     init() {
+
       this.coordinateCanvas = new CoordinateCanvas({
         canvas: document.querySelector("div[canvas] canvas"),
         pen: new Pen(
           document.querySelector("div[canvas] canvas").getContext("2d")
         ),
-        width: 800,
-        height: 500
+        width: window.innerWidth,
+        height: window.innerHeight,
       });
       //this.coordinateCanvas.enableScale(this.redraw.bind(this));
       this.coordinateCanvas.enableDrag(this.redraw.bind(this));
@@ -146,6 +160,7 @@ export default {
         canvas: this.coordinateCanvas,
         animationSpeed: this.animationSpeed
       });
+
     },
     complie: function() {
       let parsedFunction = expressionParser(this[`${this.expType}Equation`]);
@@ -166,6 +181,7 @@ export default {
       this.enableAnimation = state;
     },
     redraw(expType) {
+
       this.expType = expType || this.expType;
       this.pointPloter.ensureStopAllPlot(() => {
         this.coordinateCanvas.refresh();
@@ -178,7 +194,7 @@ export default {
       this.drawFunctonImage();
     },
     repaintScale(scale) {
-      this.pointPloter.setZoom(scale);
+      this.coordinateCanvas.setZoom(scale);
       this.zoom = scale;
       this.redraw();
     },
@@ -208,73 +224,87 @@ export default {
 
 <style lang="scss" scoped>
 div[main] {
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  div[top] {
-    display: flex;
-  }
-  div[control] {
-    margin-right: 2rem;
-    .lable {
-      margin-bottom: 0.6rem;
-      margin-top: 1.2rem;
-      user-select: none;
-      &:first-of-type {
-        margin-top: 0;
-      }
-    }
-  }
   div[canvas] {
-    width: 800px;
-    height: 500px;
+    width: 100vw;
+    height: 100vh;
     overflow: hidden;
     position: relative;
     background-color: white;
-    &::-webkit-scrollbar-thumb {
-      border-radius: 5px;
-      background: #909090;
-    }
-    &::-webkit-scrollbar-track {
-      border-radius: 20px;
-    }
-    &::-webkit-scrollbar {
-      height: 8px;
-      width: 8px;
-      background-color: #9e9e9ea6;
-    }
-    &::-webkit-scrollbar-thumb:hover {
-      background: #555252;
-    }
-    &::-webkit-scrollbar-corner {
-      background-color: #9e9e9ea6;
-      border-end-end-radius: 50%;
+    [menus] {
+      position: absolute;
+      right: 2rem;
+      padding: 0.5rem 1.5rem;
+      border: none;
+      background-color: #5f9ea04d;
+      top: 20px;
+      color: #13121573;
+      transition: all 0.3s;
+      &:hover {
+        background-color: #5f9ea0;
+        color: #131215;
+      }
     }
   }
-  div[stdin] {
-    display: flex;
-    margin-top: 2rem;
-    .tip {
-      margin: 10px 0;
+  div[panel] {
+    [mask] {
+      position: fixed;
+      width: 100vw;
+      top: 0;
+      left: 0;
+      height: 100vh;
+      background-color: #9e9e9e2b;
+      z-index: 100;
     }
-    .input-text {
-      border-radius: 2px;
-      padding: 5px;
-      border: 1px solid silver;
+    .show{
+      transform: translateX(0);
     }
-    .expression-text {
-      width: 200px;
+    .hide{
+      transform: translateX(100%);
     }
-    .range-text {
-      width: 4rem;
-    }
-    .button {
-      border-radius: 2px;
-      padding: 5px;
-      border: 1px solid silver;
-      margin-left: 0.5rem;
+    div[control] {
+      z-index: 200;
+      position: absolute;
+      top: 0;
+      right: 0;
+      height: 100vh;
+      background-color: wheat;
+      display: flex;
+      flex-direction: column;
+      padding: 0 0.7rem;
+      transition: all 0.3s;
+      form {
+        fieldset {
+          margin-top: 0.5rem;
+        }
+      }
+      .lable {
+        margin-bottom: 0.6rem;
+        margin-top: 1.2rem;
+        user-select: none;
+        &:first-of-type {
+          margin-top: 0;
+        }
+      }
+      .tip {
+        margin: 10px 0;
+      }
+      .input-text {
+        border-radius: 2px;
+        padding: 5px;
+        border: 1px solid silver;
+      }
+      .expression-text {
+        width: 200px;
+      }
+      .range-text {
+        width: 4rem;
+      }
+      .button {
+        border-radius: 2px;
+        padding: 5px;
+        border: 1px solid silver;
+        margin-left: 0.5rem;
+      }
     }
   }
 }
