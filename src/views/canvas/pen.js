@@ -12,8 +12,8 @@ export const Pen = (function() {
   Pen.prototype.drawText = function(text, position) {
     this.setPenStyle({
       textAlign: "center",
-      fillStyle: "purple",
-      font: "bold 16px serif"
+      fillStyle: "black",
+      font: "13px serif"
     });
     this.pen.fillText(text, ...position);
   };

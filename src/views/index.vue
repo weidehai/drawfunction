@@ -125,7 +125,7 @@ export default {
     expType: "cartesian",
     zoom: 50,
     polarEquation: "1+x",
-    cartesianEquation: "tanx",
+    cartesianEquation: "1+x",
     enableAnimation: false,
     animationSpeed: 1,
     showTips: false,
@@ -167,7 +167,7 @@ export default {
       return `y=${parsedFunction}`;
     },
     drawFunctonImage() {
-      return
+      // return
       let expression = this.complie();
       this.pointPloter.setExp(expression);
       try {

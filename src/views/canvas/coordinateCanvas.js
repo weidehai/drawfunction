@@ -19,7 +19,10 @@ export const CoordinateCanvas = (function() {
     this.topDrawBegin = this.cellSize + 0.5;
     this.bottomDrawBegin = null;
     this.rightDrawBegin = null;
+    this.originPointX = null;
+    this.originPointY = null;
     this.lines = null;
+    this.rulerPoints = null;
   }
   CoordinateCanvas.defaultOption = {
     canvas: null,
@@ -29,9 +32,9 @@ export const CoordinateCanvas = (function() {
     maxZoom: 4,
     maxShrink: 100,
     cellSize: 10,
-    lineColor:'#9e9e9e59',
-    MarkLineColor:'#9e9e9eed',
-    centerLineColor:'black',
+    lineColor: "#9e9e9e59",
+    MarkLineColor: "#9e9e9eed",
+    centerLineColor: "black"
   };
   CoordinateCanvas.prototype.setRow = function(row) {
     this.row = row;
@@ -42,11 +45,12 @@ export const CoordinateCanvas = (function() {
   function init(cc) {
     cc.setCanvasHeight(cc.height);
     cc.setCanvasWidth(cc.width);
-    cc.paint((cc.lines = genarateLines(cc)));
+    cc.paint((cc.lines = generateLines(cc)));
     //this.addRowRuler(5);
     //this.addColRuler(5);
   }
   CoordinateCanvas.prototype.paint = function() {
+    let cc = this;
     this.eraser.erase(0, 0, this.width, this.height);
     this.lines.x.forEach(line => {
       this.pen.drawLine(line.p1, line.p2, line.color);
@@ -54,8 +58,9 @@ export const CoordinateCanvas = (function() {
     this.lines.y.forEach(line => {
       this.pen.drawLine(line.p1, line.p2, line.color);
     });
+    paintRuler(cc);
   };
-  function genarateLines(cc) {
+  function generateLines(cc) {
     let lines = {
       x: [],
       y: []
@@ -89,9 +94,14 @@ export const CoordinateCanvas = (function() {
         color: color
       });
     }
-    lines.x[(Math.floor(lines.x.length / 5) / 2) * 5 - 1].color = cc.centerLineColor;
-    lines.y[(Math.floor(lines.y.length / 5) / 2) * 5 - 1].color = cc.centerLineColor;
-    (cc.leftEdge = lines.y[0].p1[0]),
+    let midXIndex = Math.floor(lines.x.length / 5 / 2) * 5 - 1;
+    let midYIndex = Math.floor(lines.y.length / 5 / 2) * 5 - 1;
+    lines.x[midXIndex].color = cc.centerLineColor;
+    lines.y[midYIndex].color = cc.centerLineColor;
+    generateRulerPoints(lines, midXIndex, midYIndex, cc);
+    (cc.originPointY = lines.x[midXIndex].p1[1]),
+      (cc.originPointX = lines.y[midYIndex].p1[0]),
+      (cc.leftEdge = lines.y[0].p1[0]),
       (cc.rightEdge = lines.y[lines.y.length - 1].p1[0]),
       (cc.topEdge = lines.x[0].p1[1]),
       (cc.bottomEdge = lines.x[lines.x.length - 1].p1[1]);
@@ -108,6 +118,8 @@ export const CoordinateCanvas = (function() {
       line.p1[0] = line.p1[0] + offsetX;
       line.p2[0] = line.p2[0] + offsetX;
     });
+    cc.originPointX += offsetX;
+    cc.originPointY += offsetY;
     complementLines(cc);
   }
   function complementLines(cc) {
@@ -124,10 +136,10 @@ export const CoordinateCanvas = (function() {
         p2: [x, cc.height],
         color: color
       });
-      let markLineIndex = findHeadMarkLineIndex(cc.lines.y)
-      while(markLineIndex>=5){
-        markLineIndex-=5
-        cc.lines.y[markLineIndex].color = cc.MarkLineColor
+      let markLineIndex = findHeadMarkLineIndex(cc.lines.y);
+      while (markLineIndex >= 5) {
+        markLineIndex -= 5;
+        cc.lines.y[markLineIndex].color = cc.MarkLineColor;
       }
     }
     for (let count = 1; rightEdge < cc.rightEdge; count++) {
@@ -139,10 +151,10 @@ export const CoordinateCanvas = (function() {
         p2: [x, cc.height],
         color: color
       });
-      let markLineIndex = findTailMarkLineIndex(cc.lines.y)
-      while(markLineIndex<cc.lines.y.length-5){
-        markLineIndex+=5
-        cc.lines.y[markLineIndex].color = cc.MarkLineColor
+      let markLineIndex = findTailMarkLineIndex(cc.lines.y);
+      while (markLineIndex < cc.lines.y.length - 5) {
+        markLineIndex += 5;
+        cc.lines.y[markLineIndex].color = cc.MarkLineColor;
       }
     }
     for (let count = 1; topEdge > cc.topEdge; count++) {
@@ -153,10 +165,10 @@ export const CoordinateCanvas = (function() {
         p2: [cc.width, y],
         color: color
       });
-      let markLineIndex = findHeadMarkLineIndex(cc.lines.x)
-      while(markLineIndex>=5){
-        markLineIndex-=5
-        cc.lines.x[markLineIndex].color = cc.MarkLineColor
+      let markLineIndex = findHeadMarkLineIndex(cc.lines.x);
+      while (markLineIndex >= 5) {
+        markLineIndex -= 5;
+        cc.lines.x[markLineIndex].color = cc.MarkLineColor;
       }
     }
     for (let count = 1; bottomEdge < cc.bottomEdge; count++) {
@@ -167,70 +179,141 @@ export const CoordinateCanvas = (function() {
         p2: [cc.width, y],
         color: color
       });
-      let markLineIndex = findTailMarkLineIndex(cc.lines.x)
-      while(markLineIndex<cc.lines.x.length-5){
-        markLineIndex+=5
-        cc.lines.x[markLineIndex].color = cc.MarkLineColor
+      let markLineIndex = findTailMarkLineIndex(cc.lines.x);
+      while (markLineIndex < cc.lines.x.length - 5) {
+        markLineIndex += 5;
+        cc.lines.x[markLineIndex].color = cc.MarkLineColor;
       }
     }
   }
 
-  function findHeadMarkLineIndex(lines){
-    return lines.findIndex(line=>{
-      return line.color === '#9e9e9eed'
-    })
+  function findHeadMarkLineIndex(lines) {
+    return lines.findIndex(line => {
+      return line.color === "#9e9e9eed";
+    });
   }
-  function findTailMarkLineIndex(lines){
-    let index = lines.reverse().findIndex(line=>{
-      return line.color === '#9e9e9eed'
-    })
-    lines.reverse()
-    return lines.length-1-index
+  function findTailMarkLineIndex(lines) {
+    let index = lines.reverse().findIndex(line => {
+      return line.color === "#9e9e9eed";
+    });
+    lines.reverse();
+    return lines.length - 1 - index;
   }
 
-  function paintRuler() {
-    function paintRuler1() {
-      let pre = 5;
-      let offset = pre;
-      let position = this.midlineIndexX;
-      while (position > 0) {
-        let Axis1 = this.originPointX - offset * gap;
-        this.pen.drawText(-offset / 5, [Axis1, this.originPointY]);
-        offset += pre;
-        position -= pre;
-      }
-      position = this.midlineIndexX;
-      offset = pre;
-      while (position < this.col) {
-        let Axis2 = this.originPointX + offset * gap;
-        this.pen.drawText(offset / 5, [Axis2, this.originPointY]);
-        offset += pre;
-        position += pre;
-      }
-      this.pen.drawText(0, [this.originPointX, this.originPointY]);
+  function generateRulerPoints(lines, midXIndex, midYIndex, cc) {
+    let points = {
+      x: [],
+      y: []
+    };
+    let mx = lines.y[midYIndex].p1[0],
+      my = lines.x[midXIndex].p1[1];
+    let coordXValue = -1,
+      coordYValue = -1;
+    for (let i = midYIndex - 5; i >= 0; i -= 5) {
+      points.x.unshift({
+        point: [lines.y[i].p1[0], my],
+        text: coordXValue--
+      });
     }
-    function paintRuler2() {
-      const length = this.height;
-      const gap = length / this.row;
-      let offset = pre;
-      let position = this.midlineIndexY;
-      while (position > 0) {
-        let Axis1 = this.originPointY - offset * gap;
-        this.pen.drawText(offset / 5, [this.originPointX, Axis1]);
-        offset += pre;
-        position -= pre;
-      }
-      position = this.midlineIndexY;
-      offset = pre;
-      while (position < this.row) {
-        let Axis2 = this.originPointY + offset * gap;
-        this.pen.drawText(-offset / 5, [this.originPointX, Axis2]);
-        offset += pre;
-        position += pre;
-      }
+    for (let i = midXIndex - 5; i >= 0; i -= 5) {
+      points.y.unshift({
+        point: [mx, lines.x[i].p1[1]],
+        text: coordYValue--
+      });
     }
-    paintRuler1.call(this);
-    paintRuler2.call(this);
+    (coordXValue = 0), (coordYValue = 0);
+    for (let i = midYIndex; i <= lines.y.length - 1; i += 5) {
+      points.x.push({
+        point: [lines.y[i].p1[0], my],
+        text: coordXValue++
+      });
+    }
+    for (let i = midXIndex; i <= lines.x.length - 1; i += 5) {
+      points.y.push({
+        point: [mx, lines.x[i].p1[1]],
+        text: coordYValue++
+      });
+    }
+    cc.rulerPoints = points;
+    return points;
+  }
+
+  function paintRuler(cc) {
+    let xPoints = cc.rulerPoints.x;
+    let yPoints = cc.rulerPoints.y;
+    xPoints.forEach(point => {
+      cc.pen.drawText(point.text, point.point);
+    });
+    yPoints.forEach(point => {
+      cc.pen.drawText(point.text, point.point);
+    });
+  }
+
+  function updateRulerPoints(offsetX, offsetY, cc) {
+    let xPoints = cc.rulerPoints.x;
+    let yPoints = cc.rulerPoints.y;
+    xPoints.forEach(point => {
+      point.point[0] = point.point[0] + offsetX;
+      point.point[1] = point.point[1] + offsetY;
+    });
+    yPoints.forEach(point => {
+      point.point[0] = point.point[0] + offsetX;
+      point.point[1] = point.point[1] + offsetY;
+    });
+    complementRulerPoints(cc);
+  }
+
+  function complementRulerPoints(cc) {
+    let my = cc.rulerPoints.x[cc.rulerPoints.x.length - 1].point[1];
+    let mx = cc.rulerPoints.y[cc.rulerPoints.y.length - 1].point[0];
+    let rightEdge = cc.rulerPoints.x[cc.rulerPoints.x.length - 1].point[0],
+      rightEdgeText = cc.rulerPoints.x[cc.rulerPoints.x.length - 1].text;
+    let leftEdge = cc.rulerPoints.x[0].point[0],
+      leftEdgeText = cc.rulerPoints.x[0].text;
+    let bottomEdge = cc.rulerPoints.y[cc.rulerPoints.y.length - 1].point[1],
+      bottomEdgeText = cc.rulerPoints.y[cc.rulerPoints.y.length - 1].text;
+    let topEdge = cc.rulerPoints.y[0].point[1],
+      topEdgeText = cc.rulerPoints.y[0].text;
+    for (
+      let text = rightEdgeText + 1;
+      rightEdge < cc.rightEdge - cc.cellSize * 5;
+      text++
+    ) {
+      cc.rulerPoints.x.push({
+        point: [(rightEdge += cc.cellSize * 5), my],
+        text
+      });
+    }
+    for (
+      let text = leftEdgeText - 1;
+      leftEdge > cc.leftEdge + cc.cellSize * 5;
+      text--
+    ) {
+      cc.rulerPoints.x.unshift({
+        point: [(leftEdge -= cc.cellSize * 5), my],
+        text
+      });
+    }
+    for (
+      let text = bottomEdgeText + 1;
+      bottomEdge < cc.bottomEdge - cc.cellSize * 5;
+      text++
+    ) {
+      cc.rulerPoints.y.push({
+        point: [mx, (bottomEdge += cc.cellSize * 5)],
+        text
+      });
+    }
+    for (
+      let text = topEdgeText - 1;
+      topEdge > cc.topEdge + cc.cellSize * 5;
+      text--
+    ) {
+      cc.rulerPoints.y.unshift({
+        point: [mx, (topEdge -= cc.cellSize * 5)],
+        text
+      });
+    }
   }
 
   CoordinateCanvas.prototype.refresh = function() {
@@ -251,7 +334,6 @@ export const CoordinateCanvas = (function() {
       return self.col >= self.maxShrink;
     }
     const handler = throttler((...rest) => {
-
       const [arg] = [...rest];
       if (isShrink(arg.event) && isMaxShrink()) return;
       if (isZoom(arg.event) && isMaxZoom()) return;
@@ -282,6 +364,7 @@ export const CoordinateCanvas = (function() {
       let deltaY = Math.round(endY - startY),
         deltaX = Math.round(endX - startX);
       moveLines(deltaX, deltaY, self);
+      updateRulerPoints(deltaX, deltaY, self);
       self.topDrawBegin = self.topDrawBegin + deltaY;
       self.leftDrawBegin = self.leftDrawBegin + deltaX;
       self.bottomDrawBegin = self.bottomDrawBegin + deltaY;
