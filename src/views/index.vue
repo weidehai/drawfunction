@@ -154,7 +154,7 @@ export default {
         width: window.innerWidth,
         height: window.innerHeight,
       });
-      //this.coordinateCanvas.enableScale(this.redraw.bind(this));
+      this.coordinateCanvas.enableScale(this.redraw.bind(this));
       this.coordinateCanvas.enableDrag(this.redraw.bind(this));
       this.pointPloter = new PonitPloter({
         canvas: this.coordinateCanvas,
@@ -167,7 +167,7 @@ export default {
       return `y=${parsedFunction}`;
     },
     drawFunctonImage() {
-      // return
+      return
       let expression = this.complie();
       this.pointPloter.setExp(expression);
       try {

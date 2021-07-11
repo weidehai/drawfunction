@@ -23,6 +23,7 @@ export const CoordinateCanvas = (function() {
     this.originPointY = null;
     this.lines = null;
     this.rulerPoints = null;
+    this.moving = false;
   }
   CoordinateCanvas.defaultOption = {
     canvas: null,
@@ -46,8 +47,6 @@ export const CoordinateCanvas = (function() {
     cc.setCanvasHeight(cc.height);
     cc.setCanvasWidth(cc.width);
     cc.paint((cc.lines = generateLines(cc)));
-    //this.addRowRuler(5);
-    //this.addColRuler(5);
   }
   CoordinateCanvas.prototype.paint = function() {
     let cc = this;
@@ -96,6 +95,7 @@ export const CoordinateCanvas = (function() {
     }
     let midXIndex = Math.floor(lines.x.length / 5 / 2) * 5 - 1;
     let midYIndex = Math.floor(lines.y.length / 5 / 2) * 5 - 1;
+    cc.midXIndex = midXIndex-5,cc.midYIndex=midYIndex;
     lines.x[midXIndex].color = cc.centerLineColor;
     lines.y[midYIndex].color = cc.centerLineColor;
     generateRulerPoints(lines, midXIndex, midYIndex, cc);
@@ -320,6 +320,50 @@ export const CoordinateCanvas = (function() {
     this.paint();
   };
   CoordinateCanvas.prototype.enableScale = function(cb) {
+    this.canvas.addEventListener("mousewheel", e=> {
+      let countx=1,county=1
+      if(this.cellSize===20) {countx=-10,county=-10}
+      for (let index = this.midXIndex-1; index >= 0; index--) {
+        this.lines.x[index].p1[1]-=countx
+        this.lines.x[index].p2[1]-=countx
+        if(this.cellSize===20) countx-=10
+        else countx++
+      }
+      countx=1
+      if(this.cellSize===20) countx=-10
+      for (let index = this.midXIndex+1; index < this.lines.x.length; index++) {
+        this.lines.x[index].p1[1]+=countx
+        this.lines.x[index].p2[1]+=countx
+        if(this.cellSize===20) countx-=10
+        else countx++
+      }
+      for (let index = this.midYIndex-1; index >= 0; index--) {
+        this.lines.y[index].p1[0]-=county
+        this.lines.y[index].p2[0]-=county
+        if(this.cellSize===20) county-=10
+        else county++
+      }
+      county=1
+      if(this.cellSize===20) county=-10
+      for (let index = this.midYIndex+1; index < this.lines.y.length; index++) {
+        this.lines.y[index].p1[0]+=county
+        this.lines.y[index].p2[0]+=county
+        if(this.cellSize===20) county-=10
+        else county++
+      }
+      //countx=0
+      this.rulerPoints.x.forEach(point=>{
+        point.point[0]+=point.text*5
+        point.point[1]+=1*5
+      })
+      this.rulerPoints.y.forEach(point=>{
+        point.point[1]+=point.text*5
+      })
+      if(this.cellSize===20) this.cellSize=10
+      else this.cellSize++
+      cb()
+    });
+    return
     const self = this;
     function isShrink(e) {
       return e.wheelDelta < 0 ? true : false;
@@ -358,8 +402,9 @@ export const CoordinateCanvas = (function() {
       startY,
       endX,
       endY,
-      self = this;
-    let moveHandler = function(e) {
+      self = this,
+      cc = this;
+    let moveHandler = addMoveState(function(e) {
       (endY = e.offsetY), (endX = e.offsetX);
       let deltaY = Math.round(endY - startY),
         deltaX = Math.round(endX - startX);
@@ -371,7 +416,7 @@ export const CoordinateCanvas = (function() {
       self.rightDrawBegin = self.rightDrawBegin + deltaX;
       (startX = endX), (startY = endY);
       cb();
-    };
+    },cc);
     let endHanlder = function() {
       self.canvas.removeEventListener("mouseup", endHanlder);
       self.canvas.removeEventListener("mousemove", moveHandler);
@@ -382,5 +427,11 @@ export const CoordinateCanvas = (function() {
       document.addEventListener("mouseup", endHanlder);
     });
   };
+  function addMoveState(fn, cc) {
+    return function() {
+      cc.moving = true;
+      fn(...arguments);
+    };
+  }
   return CoordinateCanvas;
 })();
