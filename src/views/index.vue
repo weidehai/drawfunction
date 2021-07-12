@@ -167,9 +167,10 @@ export default {
       return `y=${parsedFunction}`;
     },
     drawFunctonImage() {
-      return
+      //return
       let expression = this.complie();
       this.pointPloter.setExp(expression);
+      this.pointPloter.setZoom(this.coordinateCanvas.cellSize*this.coordinateCanvas.ratio)
       try {
         this.pointPloter[this.expType]();
       } catch (e) {

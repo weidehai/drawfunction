@@ -24,6 +24,7 @@ export const CoordinateCanvas = (function() {
     this.lines = null;
     this.rulerPoints = null;
     this.moving = false;
+    this.ratio = 5
   }
   CoordinateCanvas.defaultOption = {
     canvas: null,
@@ -95,10 +96,60 @@ export const CoordinateCanvas = (function() {
     }
     let midXIndex = Math.floor(lines.x.length / 5 / 2) * 5 - 1;
     let midYIndex = Math.floor(lines.y.length / 5 / 2) * 5 - 1;
-    cc.midXIndex = midXIndex-5,cc.midYIndex=midYIndex;
+    cc.midXIndex = midXIndex,cc.midYIndex=midYIndex;
     lines.x[midXIndex].color = cc.centerLineColor;
     lines.y[midYIndex].color = cc.centerLineColor;
-    generateRulerPoints(lines, midXIndex, midYIndex, cc);
+    generateRulerPoints(lines, cc);
+    (cc.originPointY = lines.x[midXIndex].p1[1]),
+      (cc.originPointX = lines.y[midYIndex].p1[0]),
+      (cc.leftEdge = lines.y[0].p1[0]),
+      (cc.rightEdge = lines.y[lines.y.length - 1].p1[0]),
+      (cc.topEdge = lines.x[0].p1[1]),
+      (cc.bottomEdge = lines.x[lines.x.length - 1].p1[1]);
+    return lines;
+  }
+
+  function generateLines2(cc) {
+    let lines = {
+      x: [],
+      y: []
+    };
+    let x, y, color;
+    for (let count = 1; ; count++) {
+      y = cc.topDrawBegin + (count - 1) * cc.cellSize;
+      if (y >= cc.height) break;
+      if (y <= 0) continue;
+      color = cc.lineColor;
+      if (count % 5 === 0) {
+        color = cc.MarkLineColor;
+      }
+      lines.x.push({
+        p1: [0, y],
+        p2: [cc.width, y],
+        color: color
+      });
+    }
+    for (let count = 1; ; count++) {
+      x = cc.leftDrawBegin + (count - 1) * cc.cellSize;
+      if (x >= cc.width) break;
+      if (x <= 0) continue;
+      color = cc.lineColor;
+      if (count % 5 === 0) {
+        color = cc.MarkLineColor;
+      }
+      lines.y.push({
+        p1: [x, 0],
+        p2: [x, cc.height],
+        color: color
+      });
+    }
+    let midXIndex = Math.floor(lines.x.length / 5 / 2) * 5 - 1;
+    let midYIndex = Math.floor(lines.y.length / 5 / 2) * 5 - 1;
+    cc.midXIndex = midXIndex,cc.midYIndex=midYIndex;
+    lines.x[midXIndex].color = cc.centerLineColor;
+    lines.y[midYIndex].color = cc.centerLineColor;
+    console.log(lines.x[midXIndex])
+    generateRulerPoints(lines, cc);
     (cc.originPointY = lines.x[midXIndex].p1[1]),
       (cc.originPointX = lines.y[midYIndex].p1[0]),
       (cc.leftEdge = lines.y[0].p1[0]),
@@ -200,11 +251,19 @@ export const CoordinateCanvas = (function() {
     return lines.length - 1 - index;
   }
 
-  function generateRulerPoints(lines, midXIndex, midYIndex, cc) {
+  function findBlackLineIndex(lines){
+    return lines.findIndex(line=>{
+      return line.color==='black'
+    })
+  }
+
+  function generateRulerPoints(lines, cc) {
     let points = {
       x: [],
       y: []
     };
+    let midYIndex = findBlackLineIndex(lines.y)
+    let midXIndex = findBlackLineIndex(lines.x)
     let mx = lines.y[midYIndex].p1[0],
       my = lines.x[midXIndex].p1[1];
     let coordXValue = -1,
@@ -321,46 +380,39 @@ export const CoordinateCanvas = (function() {
   };
   CoordinateCanvas.prototype.enableScale = function(cb) {
     this.canvas.addEventListener("mousewheel", e=> {
-      let countx=1,county=1
-      if(this.cellSize===20) {countx=-10,county=-10}
-      for (let index = this.midXIndex-1; index >= 0; index--) {
-        this.lines.x[index].p1[1]-=countx
-        this.lines.x[index].p2[1]-=countx
-        if(this.cellSize===20) countx-=10
-        else countx++
+      let action = e.wheelDelta>0?"zoom":"shrink"
+      let countx1,countx2,county1,county2
+      switch (action) {
+        case "zoom":
+          countx1 = countx2 = county1 = county2 = 1
+          break;
+        case "shrink":
+          countx1 = countx2 = county1 = county2 = -1
+          break;
       }
-      countx=1
-      if(this.cellSize===20) countx=-10
+      let cc = this
+      for (let index = this.midXIndex-1; index >= 0; index--) {
+        this.lines.x[index].p1[1]-=countx1
+        this.lines.x[index].p2[1]-=countx1
+        action==="zoom"?countx1++:countx1--
+      }
       for (let index = this.midXIndex+1; index < this.lines.x.length; index++) {
-        this.lines.x[index].p1[1]+=countx
-        this.lines.x[index].p2[1]+=countx
-        if(this.cellSize===20) countx-=10
-        else countx++
+        this.lines.x[index].p1[1]+=countx2
+        this.lines.x[index].p2[1]+=countx2
+        action==="zoom"?countx2++:countx2--
       }
       for (let index = this.midYIndex-1; index >= 0; index--) {
-        this.lines.y[index].p1[0]-=county
-        this.lines.y[index].p2[0]-=county
-        if(this.cellSize===20) county-=10
-        else county++
+        this.lines.y[index].p1[0]-=county1
+        this.lines.y[index].p2[0]-=county1
+        action==="zoom"?county1++:county1--
       }
-      county=1
-      if(this.cellSize===20) county=-10
       for (let index = this.midYIndex+1; index < this.lines.y.length; index++) {
-        this.lines.y[index].p1[0]+=county
-        this.lines.y[index].p2[0]+=county
-        if(this.cellSize===20) county-=10
-        else county++
+        this.lines.y[index].p1[0]+=county2
+        this.lines.y[index].p2[0]+=county2
+        action==="zoom"?county2++:county2--
       }
-      //countx=0
-      this.rulerPoints.x.forEach(point=>{
-        point.point[0]+=point.text*5
-        point.point[1]+=1*5
-      })
-      this.rulerPoints.y.forEach(point=>{
-        point.point[1]+=point.text*5
-      })
-      if(this.cellSize===20) this.cellSize=10
-      else this.cellSize++
+      action==="zoom"?this.cellSize++:this.cellSize--
+      generateRulerPoints(cc.lines,cc)
       cb()
     });
     return
