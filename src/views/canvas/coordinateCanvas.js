@@ -24,7 +24,8 @@ export const CoordinateCanvas = (function() {
     this.lines = null;
     this.rulerPoints = null;
     this.moving = false;
-    this.ratio = 5
+    this.ratio = 5;
+    this.scale = 0;
   }
   CoordinateCanvas.defaultOption = {
     canvas: null,
@@ -96,7 +97,7 @@ export const CoordinateCanvas = (function() {
     }
     let midXIndex = Math.floor(lines.x.length / 5 / 2) * 5 - 1;
     let midYIndex = Math.floor(lines.y.length / 5 / 2) * 5 - 1;
-    cc.midXIndex = midXIndex,cc.midYIndex=midYIndex;
+    (cc.midXIndex = midXIndex), (cc.midYIndex = midYIndex);
     lines.x[midXIndex].color = cc.centerLineColor;
     lines.y[midYIndex].color = cc.centerLineColor;
     generateRulerPoints(lines, cc);
@@ -145,10 +146,10 @@ export const CoordinateCanvas = (function() {
     }
     let midXIndex = Math.floor(lines.x.length / 5 / 2) * 5 - 1;
     let midYIndex = Math.floor(lines.y.length / 5 / 2) * 5 - 1;
-    cc.midXIndex = midXIndex,cc.midYIndex=midYIndex;
+    (cc.midXIndex = midXIndex), (cc.midYIndex = midYIndex);
     lines.x[midXIndex].color = cc.centerLineColor;
     lines.y[midYIndex].color = cc.centerLineColor;
-    console.log(lines.x[midXIndex])
+    console.log(lines.x[midXIndex]);
     generateRulerPoints(lines, cc);
     (cc.originPointY = lines.x[midXIndex].p1[1]),
       (cc.originPointX = lines.y[midYIndex].p1[0]),
@@ -251,10 +252,10 @@ export const CoordinateCanvas = (function() {
     return lines.length - 1 - index;
   }
 
-  function findBlackLineIndex(lines){
-    return lines.findIndex(line=>{
-      return line.color==='black'
-    })
+  function findBlackLineIndex(lines) {
+    return lines.findIndex(line => {
+      return line.color === "black";
+    });
   }
 
   function generateRulerPoints(lines, cc) {
@@ -262,8 +263,8 @@ export const CoordinateCanvas = (function() {
       x: [],
       y: []
     };
-    let midYIndex = findBlackLineIndex(lines.y)
-    let midXIndex = findBlackLineIndex(lines.x)
+    let midYIndex = findBlackLineIndex(lines.y);
+    let midXIndex = findBlackLineIndex(lines.x);
     let mx = lines.y[midYIndex].p1[0],
       my = lines.x[midXIndex].p1[1];
     let coordXValue = -1,
@@ -379,43 +380,25 @@ export const CoordinateCanvas = (function() {
     this.paint();
   };
   CoordinateCanvas.prototype.enableScale = function(cb) {
-    this.canvas.addEventListener("mousewheel", e=> {
-      let action = e.wheelDelta>0?"zoom":"shrink"
-      let countx1,countx2,county1,county2
+    this.canvas.addEventListener("mousewheel", e => {
+      let action = e.wheelDelta > 0 ? "zoom" : "shrink";
       switch (action) {
         case "zoom":
-          countx1 = countx2 = county1 = county2 = 1
+          this.cellSize += 1;
+          this.leftDrawBegin = this.cellSize + 0.5;
+          this.topDrawBegin = this.cellSize + 0.5;
           break;
         case "shrink":
-          countx1 = countx2 = county1 = county2 = -1
+          this.cellSize -= 1;
+          this.leftDrawBegin = this.cellSize + 0.5;
+          this.topDrawBegin = this.cellSize + 0.5;
+          break;
+        default:
           break;
       }
-      let cc = this
-      for (let index = this.midXIndex-1; index >= 0; index--) {
-        this.lines.x[index].p1[1]-=countx1
-        this.lines.x[index].p2[1]-=countx1
-        action==="zoom"?countx1++:countx1--
-      }
-      for (let index = this.midXIndex+1; index < this.lines.x.length; index++) {
-        this.lines.x[index].p1[1]+=countx2
-        this.lines.x[index].p2[1]+=countx2
-        action==="zoom"?countx2++:countx2--
-      }
-      for (let index = this.midYIndex-1; index >= 0; index--) {
-        this.lines.y[index].p1[0]-=county1
-        this.lines.y[index].p2[0]-=county1
-        action==="zoom"?county1++:county1--
-      }
-      for (let index = this.midYIndex+1; index < this.lines.y.length; index++) {
-        this.lines.y[index].p1[0]+=county2
-        this.lines.y[index].p2[0]+=county2
-        action==="zoom"?county2++:county2--
-      }
-      action==="zoom"?this.cellSize++:this.cellSize--
-      generateRulerPoints(cc.lines,cc)
-      cb()
+      this.paint((this.lines = generateLines(this)));
     });
-    return
+    return;
     const self = this;
     function isShrink(e) {
       return e.wheelDelta < 0 ? true : false;
@@ -468,7 +451,7 @@ export const CoordinateCanvas = (function() {
       self.rightDrawBegin = self.rightDrawBegin + deltaX;
       (startX = endX), (startY = endY);
       cb();
-    },cc);
+    }, cc);
     let endHanlder = function() {
       self.canvas.removeEventListener("mouseup", endHanlder);
       self.canvas.removeEventListener("mousemove", moveHandler);
