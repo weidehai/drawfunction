@@ -13,9 +13,8 @@
     "@fortawesome/fontawesome-svg-core": "^1.2.35",
     "@fortawesome/free-solid-svg-icons": "^5.15.3",
     "@fortawesome/vue-fontawesome": "^2.0.2",
-    "core-js": "^3.6.5",
     "function-translate": "^1.0.1",
-    "ifuncs": "^1.0.1",
+    "ifuncs": "^1.0.5",
     "vue": "^2.6.11",
     "woneui": "^1.0.1"
   },

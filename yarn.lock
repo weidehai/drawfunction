@@ -5263,10 +5263,10 @@ iferr@^0.1.5:
   resolved "https://registry.yarnpkg.com/iferr/-/iferr-0.1.5.tgz#c60eed69e6d8fdb6b3104a1fcbca1c192dc5b501"
   integrity sha1-xg7taebY/bazEEofy8ocGS3FtQE=
 
-ifuncs@^1.0.1:
-  version "1.0.1"
-  resolved "https://registry.yarnpkg.com/ifuncs/-/ifuncs-1.0.1.tgz#66c3b013d06db42ba9ea5ac6d22e746b35fa44ca"
-  integrity sha512-ADogG9O2wcnj3yniMUgdM9x/w5pyl8RzNa2DXhhNgnLsHHMtlVAtDRkpYHcmSbXn0MsXi3MXen87f0j9FJ9otw==
+ifuncs@^1.0.5:
+  version "1.0.5"
+  resolved "https://registry.yarnpkg.com/ifuncs/-/ifuncs-1.0.5.tgz#27121f09c8d396aa9ee25378ee9122eb0920b44f"
+  integrity sha512-g1QaCXK+NDrxVq+QzFJQUFxU0Dam+SksKFd05cKJrPQeCRn4o7oztPG7OJ6r2EZVEriFWGMDKu/49H8XkZDqTA==
 
 ignore@^3.3.5:
   version "3.3.10"

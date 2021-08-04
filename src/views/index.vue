@@ -8,28 +8,7 @@
     </div>
     <div panel>
       <div mask v-if="menusShow" @click.stop.prevent.self="hideMenus"></div>
-      <div control :class="[menusShow?'show':'hide']">
-        <form>
-          <fieldset>
-            <legend>控制面板</legend>
-            <div>
-              <p class="lable">比例尺调节: 1:{{ zoom }}</p>
-              <slideAdjuster
-                :values="[20, 40, 60, 80, 100]"
-                @change="repaintScale"
-              ></slideAdjuster>
-              <p class="lable">动画速度: {{ animationSpeed }}秒</p>
-              <slideAdjuster
-                :values="[1, 2, 3, 4, 5]"
-                @change="setAnimationSpeed"
-              ></slideAdjuster>
-              <p class="lable">
-                动画: {{ enableAnimation ? "已开启" : "已关闭" }}
-              </p>
-              <switcher @change="switchAnimation"></switcher>
-            </div>
-          </fieldset>
-        </form>
+      <div control :class="[menusShow ? 'show' : 'hide']">
         <form>
           <fieldset>
             <legend>请输入一个显函数</legend>
@@ -78,14 +57,12 @@
               polarleft
               class="input-text range-text"
               @change="setPolarRange"
-              min="0"
             />deg -
             <input
               type="number"
               polarright
               class="input-text range-text"
               @change="setPolarRange"
-              min="0"
             />deg
             <input
               class="button"
@@ -123,11 +100,8 @@ export default {
     pointPloter: null,
     coordinateCanvas: null,
     expType: "cartesian",
-    zoom: 50,
     polarEquation: "1+x",
     cartesianEquation: "1+x",
-    enableAnimation: false,
-    animationSpeed: 1,
     showTips: false,
     tips: {
       message: undefined,
@@ -145,32 +119,27 @@ export default {
       this.menusShow = true;
     },
     init() {
-
       this.coordinateCanvas = new CoordinateCanvas({
         canvas: document.querySelector("div[canvas] canvas"),
         pen: new Pen(
           document.querySelector("div[canvas] canvas").getContext("2d")
         ),
         width: window.innerWidth,
-        height: window.innerHeight,
+        height: window.innerHeight
       });
       this.coordinateCanvas.enableScale(this.redraw.bind(this));
       this.coordinateCanvas.enableDrag(this.redraw.bind(this));
       this.pointPloter = new PonitPloter({
-        canvas: this.coordinateCanvas,
-        animationSpeed: this.animationSpeed
+        canvas: this.coordinateCanvas
       });
-
     },
     complie: function() {
       let parsedFunction = expressionParser(this[`${this.expType}Equation`]);
       return `y=${parsedFunction}`;
     },
     drawFunctonImage() {
-      return
       let expression = this.complie();
       this.pointPloter.setExp(expression);
-      this.pointPloter.setZoom(this.coordinateCanvas.cellSize*this.coordinateCanvas.ratio)
       try {
         this.pointPloter[this.expType]();
       } catch (e) {
@@ -183,11 +152,9 @@ export default {
     },
     redraw(expType) {
       this.expType = expType || this.expType;
-      this.pointPloter.ensureStopAllPlot(() => {
-        this.coordinateCanvas.refresh();
-        this.pointPloter.refresh();
-        this.drawFunctonImage();
-      });
+      this.coordinateCanvas.refresh();
+      this.pointPloter.refresh();
+      this.drawFunctonImage();
     },
     normalDraw(expType) {
       this.expType = expType || this.expType;
@@ -255,10 +222,10 @@ div[main] {
       background-color: #9e9e9e2b;
       z-index: 100;
     }
-    .show{
+    .show {
       transform: translateX(0);
     }
-    .hide{
+    .hide {
       transform: translateX(100%);
     }
     div[control] {

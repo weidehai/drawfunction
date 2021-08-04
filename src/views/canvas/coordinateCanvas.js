@@ -1,6 +1,6 @@
 import { Canvas } from "./canvas";
 import { Eraser } from "./eraser";
-import { mergeOption } from "ifuncs";
+import { mergeOption, throttler } from "ifuncs";
 
 export const CoordinateCanvas = (function() {
   function CoordinateCanvas(options) {
@@ -25,10 +25,13 @@ export const CoordinateCanvas = (function() {
     this.dragOffset = [0, 0];
     this.rulerPoints = null;
     this.moving = false;
-    this.ratio = 5;
+    this.per = 5;
     this.scale = 0;
     this.ratio = 1;
-    this.staticCoorCenter = [Math.round(this.width/2)+0.5,Math.round(this.height/2)+0.5]
+    this.staticCoorCenter = [
+      Math.round(this.width / 2) + 0.5,
+      Math.round(this.height / 2) + 0.5
+    ];
   }
   CoordinateCanvas.defaultOption = {
     canvas: null,
@@ -113,6 +116,8 @@ export const CoordinateCanvas = (function() {
     return lines;
   }
 
+  function canvas2coor() {}
+
   function generateLines2(cc) {
     let lines = {
       x: [],
@@ -152,11 +157,11 @@ export const CoordinateCanvas = (function() {
     for (let count = 0; ; count++) {
       x = cc.staticCoorCenter[0] + count * cc.cellSize;
       if (x >= cc.width) break;
-      if(count==0){
-        color = cc.centerLineColor
-      }else if (count % 5 === 0) {
+      if (count == 0) {
+        color = cc.centerLineColor;
+      } else if (count % 5 === 0) {
         color = cc.MarkLineColor;
-      }else{
+      } else {
         color = cc.lineColor;
       }
       lines.y.push({
@@ -170,7 +175,7 @@ export const CoordinateCanvas = (function() {
       if (x <= 0) break;
       if (count % 5 === 0) {
         color = cc.MarkLineColor;
-      }else{
+      } else {
         color = cc.lineColor;
       }
       lines.y.unshift({
@@ -300,20 +305,20 @@ export const CoordinateCanvas = (function() {
     let mx = lines.y[midYIndex].p1[0],
       my = lines.x[midXIndex].p1[1];
     let coordXValue = -cc.ratio,
-      coordYValue = -cc.ratio;
+      coordYValue = cc.ratio;
     for (let i = midYIndex - 5; i >= 0; i -= 5) {
       points.x.unshift({
         point: [lines.y[i].p1[0], my],
         text: coordXValue
       });
-      coordXValue-=cc.ratio
+      coordXValue -= cc.ratio;
     }
     for (let i = midXIndex - 5; i >= 0; i -= 5) {
       points.y.unshift({
         point: [mx, lines.x[i].p1[1]],
         text: coordYValue
       });
-      coordYValue-=cc.ratio
+      coordYValue += cc.ratio;
     }
     (coordXValue = 0), (coordYValue = 0);
     for (let i = midYIndex; i <= lines.y.length - 1; i += 5) {
@@ -321,14 +326,14 @@ export const CoordinateCanvas = (function() {
         point: [lines.y[i].p1[0], my],
         text: coordXValue
       });
-      coordXValue+=cc.ratio
+      coordXValue += cc.ratio;
     }
     for (let i = midXIndex; i <= lines.x.length - 1; i += 5) {
       points.y.push({
         point: [mx, lines.x[i].p1[1]],
         text: coordYValue
       });
-      coordYValue+=cc.ratio
+      coordYValue -= cc.ratio;
     }
     cc.rulerPoints = points;
     return points;
@@ -371,9 +376,9 @@ export const CoordinateCanvas = (function() {
     let topEdge = cc.rulerPoints.y[0].point[1],
       topEdgeText = cc.rulerPoints.y[0].text;
     for (
-      let text = rightEdgeText + 1;
+      let text = rightEdgeText + cc.ratio;
       rightEdge < cc.rightEdge - cc.cellSize * 5;
-      text++
+      text += cc.ratio
     ) {
       cc.rulerPoints.x.push({
         point: [(rightEdge += cc.cellSize * 5), my],
@@ -381,9 +386,9 @@ export const CoordinateCanvas = (function() {
       });
     }
     for (
-      let text = leftEdgeText - 1;
+      let text = leftEdgeText - cc.ratio;
       leftEdge > cc.leftEdge + cc.cellSize * 5;
-      text--
+      text -= cc.ratio
     ) {
       cc.rulerPoints.x.unshift({
         point: [(leftEdge -= cc.cellSize * 5), my],
@@ -391,9 +396,9 @@ export const CoordinateCanvas = (function() {
       });
     }
     for (
-      let text = bottomEdgeText + 1;
+      let text = bottomEdgeText - cc.ratio;
       bottomEdge < cc.bottomEdge - cc.cellSize * 5;
-      text++
+      text -= cc.ratio
     ) {
       cc.rulerPoints.y.push({
         point: [mx, (bottomEdge += cc.cellSize * 5)],
@@ -401,9 +406,9 @@ export const CoordinateCanvas = (function() {
       });
     }
     for (
-      let text = topEdgeText - 1;
+      let text = topEdgeText + cc.ratio;
       topEdge > cc.topEdge + cc.cellSize * 5;
-      text--
+      text += cc.ratio
     ) {
       cc.rulerPoints.y.unshift({
         point: [mx, (topEdge -= cc.cellSize * 5)],
@@ -415,63 +420,63 @@ export const CoordinateCanvas = (function() {
   CoordinateCanvas.prototype.refresh = function() {
     this.paint();
   };
+  function watchMousePoint(cc) {
+    cc.canvas.addEventListener("mousemove", e => {
+      cc.mousePointX = e.offsetX;
+      cc.mousePointY = e.offsetY;
+    });
+  }
   CoordinateCanvas.prototype.enableScale = function(cb) {
-    this.canvas.addEventListener("mousewheel", e => {
-      let action = e.wheelDelta > 0 ? "zoom" : "shrink";
+    watchMousePoint(this);
+    const handler = throttler((...rest) => {
+      const [arg] = [...rest];
+      let action = arg.event.wheelDelta > 0 ? "zoom" : "shrink";
       switch (action) {
         case "zoom":
           this.cellSize += 1;
-          if(this.cellSize>20) this.cellSize = 10,this.ratio/=2
+          if (this.cellSize > 20) (this.cellSize = 10), (this.ratio /= 2);
           this.leftDrawBegin = this.cellSize + 0.5;
           this.topDrawBegin = this.cellSize + 0.5;
+          this.dragOffset[0] =
+            this.dragOffset[0] +
+            Math.round(
+              (this.staticCoorCenter[0] - this.mousePointX) / this.cellSize
+            );
+          this.dragOffset[1] =
+            this.dragOffset[1] +
+            Math.round(
+              (this.staticCoorCenter[1] - this.mousePointY) / this.cellSize
+            );
           break;
         case "shrink":
           this.cellSize -= 1;
-          if(this.cellSize<10) this.cellSize = 20,this.ratio*=2
+          if (this.cellSize < 10) (this.cellSize = 20), (this.ratio *= 2);
           this.leftDrawBegin = this.cellSize + 0.5;
           this.topDrawBegin = this.cellSize + 0.5;
+          this.dragOffset[0] =
+            this.dragOffset[0] -
+            Math.round(
+              (this.staticCoorCenter[0] - this.mousePointX) / this.cellSize
+            );
+          this.dragOffset[1] =
+            this.dragOffset[1] -
+            Math.round(
+              (this.staticCoorCenter[1] - this.mousePointY) / this.cellSize
+            );
           break;
         default:
           break;
       }
       this.lines = generateLines2(this);
+
       moveLines(this.dragOffset[0], this.dragOffset[1], this);
-      generateRulerPoints(this.lines,this)
-      this.paint();
+      generateRulerPoints(this.lines, this);
+      cb();
+    }, 0);
+    this.canvas.addEventListener("mousewheel", e => {
+      handler({ event: e });
     });
     return;
-    const self = this;
-    function isShrink(e) {
-      return e.wheelDelta < 0 ? true : false;
-    }
-    function isZoom(e) {
-      return e.wheelDelta > 0 ? true : false;
-    }
-    function isMaxZoom() {
-      return self.col <= self.maxZoom;
-    }
-    function isMaxShrink() {
-      return self.col >= self.maxShrink;
-    }
-    const handler = throttler((...rest) => {
-      const [arg] = [...rest];
-      if (isShrink(arg.event) && isMaxShrink()) return;
-      if (isZoom(arg.event) && isMaxZoom()) return;
-      if (isShrink(arg.event) && !isMaxShrink()) {
-        this.col += 2;
-        this.row += 2;
-      }
-      if (isZoom(arg.event) && !isMaxZoom()) {
-        this.col -= 2;
-        this.row -= 2;
-      }
-      this.init();
-      cb();
-    }, 20);
-
-    this.canvas.addEventListener("mousewheel", function(e) {
-      doEventIfOwner(this, e, handler);
-    });
   };
   CoordinateCanvas.prototype.enableDrag = function(cb) {
     let startX,
