@@ -1,7 +1,7 @@
-import { degToarc, reliableFloatAdd, isNull, isArray } from "ifuncs";
+import { degToarc, reliableFloatAdd, isArray } from "ifuncs";
 
 export const PonitPloter = (function() {
-  let ratio = 0;
+  let ratio = -1; // 1 on coordinate axis representative ${ratio} on canvas
   let _options; //sava options
   let cartesianContext = {
     x: null,
@@ -11,8 +11,8 @@ export const PonitPloter = (function() {
   };
   let polarContext = {
     degVariable: 0,
-    x:0,
-    y:0,
+    x: 0,
+    y: 0,
     polarRange: [0, 360],
     polarStep: 1
   };
@@ -28,7 +28,6 @@ export const PonitPloter = (function() {
     init(this, options);
   }
   function init(pp, options) {
-    ratio = (pp.canvas.cellSize * pp.canvas.per) / pp.canvas.ratio;
     function initCartesianContext() {
       if (options.cartesianStep)
         cartesianContext.cartesianStep = parseFloat(options.cartesianStep);
@@ -41,8 +40,8 @@ export const PonitPloter = (function() {
           ));
       else
         cartesianContext.cartesianRange = [
-          (0 - pp.canvas.originPointX) / ratio,
-          (pp.canvas.width - pp.canvas.originPointX) / ratio
+          (0 - pp.canvas.getCoorOriginPoint()[0]) / ratio,
+          (pp.canvas.width - pp.canvas.getCoorOriginPoint()[0]) / ratio
         ];
       cartesianContext.x = cartesianContext.cartesianRange[0];
     }
@@ -52,7 +51,7 @@ export const PonitPloter = (function() {
       if (options.polarStep)
         polarContext.polarStep = parseInt(options.polarStep);
     }
-    function initCalculateCanvasPoint(){
+    function initCalculateCanvasPoint() {
       calculateCanvasPoint = {
         x: 0,
         y: 0,
@@ -62,7 +61,7 @@ export const PonitPloter = (function() {
     }
     initCartesianContext();
     initPolarContext();
-    initCalculateCanvasPoint()
+    initCalculateCanvasPoint();
   }
 
   PonitPloter.prototype.setExp = function(expression) {
@@ -76,7 +75,10 @@ export const PonitPloter = (function() {
   };
   PonitPloter.prototype.polar = function() {
     let pp = this;
-    ratio = (pp.canvas.cellSize * pp.canvas.per) / pp.canvas.ratio;
+    let [originPointX, originPointY] = this.canvas.getCoorOriginPoint();
+    ratio =
+      (pp.canvas.getCellSize() * pp.canvas.getRatio()[0]) /
+      pp.canvas.getRatio()[1];
     let expression = this.expression
       .replace("x", "polarContext.x")
       .replace("y", "polarContext.y");
@@ -93,27 +95,27 @@ export const PonitPloter = (function() {
         throw e;
       }
       calculateCanvasPoint.x =
-        this.canvas.originPointX +
-        polarContext.y *
-          Math.cos(polarContext.x) *
-          ratio;
+        originPointX + polarContext.y * Math.cos(polarContext.x) * ratio;
       calculateCanvasPoint.y =
-        this.canvas.originPointY -
-        polarContext.y *
-          Math.sin(polarContext.x) *
-          ratio;
+        originPointY - polarContext.y * Math.sin(polarContext.x) * ratio;
       if (isInlayout(calculateCanvasPoint.x, calculateCanvasPoint.y, pp)) {
-        drawIfInNeed(pp)
+        drawIfInNeed(pp);
       } else {
         (calculateCanvasPoint._x = null), (calculateCanvasPoint._y = null);
       }
-      polarContext.degVariable = reliableFloatAdd(polarContext.degVariable, polarContext.polarStep);
+      polarContext.degVariable = reliableFloatAdd(
+        polarContext.degVariable,
+        polarContext.polarStep
+      );
       polarContext.x = degToarc(polarContext.degVariable);
     }
   };
   PonitPloter.prototype.cartesian = function() {
     let pp = this;
-    ratio = (pp.canvas.cellSize * pp.canvas.per) / pp.canvas.ratio;
+    let [originPointX, originPointY] = this.canvas.getCoorOriginPoint();
+    ratio =
+      (pp.canvas.getCellSize() * pp.canvas.getRatio()[0]) /
+      pp.canvas.getRatio()[1];
     let expression = this.expression
       .replace("x", "cartesianContext.x")
       .replace("y", "cartesianContext.y");
@@ -123,22 +125,20 @@ export const PonitPloter = (function() {
       } catch (e) {
         throw e;
       }
-      calculateCanvasPoint.x =
-        this.canvas.originPointX + cartesianContext.x * ratio;
-      calculateCanvasPoint.y =
-        this.canvas.originPointY - cartesianContext.y * ratio;
+      calculateCanvasPoint.x = originPointX + cartesianContext.x * ratio;
+      calculateCanvasPoint.y = originPointY - cartesianContext.y * ratio;
       if (isInlayout(calculateCanvasPoint.x, calculateCanvasPoint.y, pp)) {
-        drawIfInNeed(pp)
+        drawIfInNeed(pp);
       } else {
         (calculateCanvasPoint._x = null), (calculateCanvasPoint._y = null);
       }
       cartesianContext.x = reliableFloatAdd(
         cartesianContext.x,
-        cartesianContext.cartesianStep * this.canvas.ratio
+        cartesianContext.cartesianStep * pp.canvas.getRatio()[1]
       );
     }
   };
-  function drawIfInNeed(pp){
+  function drawIfInNeed(pp) {
     if (!calculateCanvasPoint._x || !calculateCanvasPoint._y) {
       (calculateCanvasPoint._x = calculateCanvasPoint.x),
         (calculateCanvasPoint._y = calculateCanvasPoint.y);

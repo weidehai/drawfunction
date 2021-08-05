@@ -1,30 +1,23 @@
-import { mergeOption, throttler } from "ifuncs";
-import { doEventIfOwner } from "../../util/main.js";
-
+import { Pen } from "./pen";
+import { Eraser } from "./eraser";
 export const Canvas = (function() {
   function Canvas(options) {
-    initOptions.call(this,options)
+    this.canvas = options.canvas;
+    this.pen = new Pen(this.canvas.getContext("2d"));
+    this.eraser = new Eraser(this.pen);
+    this.width = options.width;
+    this.height = options.height;
     this.setCanvasHeight(this.height);
     this.setCanvasWidth(this.width);
   }
-  Canvas.defaultOption = {
-    canvas: null,
-    pen: null,
-    width: 500,
-    height: 500
-  };
-  function initOptions(options){
-    options = mergeOption(options || {}, Canvas.defaultOption);
-    for(let [key,value] of Object.entries(options)){
-      this[key] = value
-    }
-  }
   Canvas.prototype.setCanvasHeight = function(height) {
     if (!this.canvas) return;
+    this.height = height;
     this.canvas.height = height;
   };
   Canvas.prototype.setCanvasWidth = function(width) {
     if (!this.canvas) return;
+    this.width = width;
     this.canvas.width = width;
   };
   Canvas.prototype.setPen = function(pen) {

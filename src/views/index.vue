@@ -91,7 +91,6 @@
 <script>
 import { expressionParser } from "function-translate";
 import { CoordinateCanvas } from "./canvas/coordinateCanvas";
-import { Pen } from "./canvas/pen";
 import { PonitPloter } from "./pointPloter";
 
 export default {
@@ -121,9 +120,6 @@ export default {
     init() {
       this.coordinateCanvas = new CoordinateCanvas({
         canvas: document.querySelector("div[canvas] canvas"),
-        pen: new Pen(
-          document.querySelector("div[canvas] canvas").getContext("2d")
-        ),
         width: window.innerWidth,
         height: window.innerHeight
       });
