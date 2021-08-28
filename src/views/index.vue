@@ -154,6 +154,7 @@ export default {
     },
     normalDraw(expType) {
       this.expType = expType || this.expType;
+      this.pointPloter.refresh();
       this.drawFunctonImage();
     },
     repaintScale(scale) {
